@@ -18,16 +18,10 @@
                 </a>
 
                 <nav class="flex items-center gap-1 text-sm" aria-label="Primary">
-                    <a
-                        href="{{ route('dashboard') }}"
-                        @class([
-                            'rounded-md px-3 py-2 font-medium',
-                            'bg-slate-900 text-white' => request()->routeIs('dashboard'),
-                            'text-slate-600 hover:bg-slate-100 hover:text-slate-900' => ! request()->routeIs('dashboard'),
-                        ])
-                    >
-                        Dashboard
-                    </a>
+                    <a href="{{ route('dashboard') }}" @class(['rounded-md px-3 py-2 font-medium', 'bg-slate-900 text-white' => request()->routeIs('dashboard'), 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' => ! request()->routeIs('dashboard')])>Dashboard</a>
+                    <a href="{{ route('vessel.show') }}" @class(['rounded-md px-3 py-2 font-medium', 'bg-slate-900 text-white' => request()->routeIs('vessel.*'), 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' => ! request()->routeIs('vessel.*')])>Vessel</a>
+                    <a href="{{ route('assets.index') }}" @class(['rounded-md px-3 py-2 font-medium', 'bg-slate-900 text-white' => request()->routeIs('assets.*'), 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' => ! request()->routeIs('assets.*')])>Assets</a>
+                    <a href="{{ route('plans.index') }}" @class(['rounded-md px-3 py-2 font-medium', 'bg-slate-900 text-white' => request()->routeIs('plans.*'), 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' => ! request()->routeIs('plans.*')])>Plans</a>
 
                     @if (auth()->user()?->isChiefEngineer())
                         <a

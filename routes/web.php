@@ -1,8 +1,12 @@
 <?php
 
+use App\Http\Controllers\AssetController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MaintenancePlanController;
+use App\Http\Controllers\PlanActivationController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VesselController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
@@ -18,6 +22,32 @@ Route::post('/logout', [LoginController::class, 'destroy'])
 
 Route::middleware(['auth', 'active'])->group(function (): void {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/vessel', [VesselController::class, 'show'])->name('vessel.show');
+
+    Route::get('/assets', [AssetController::class, 'index'])->name('assets.index');
+
+    Route::middleware('role:chief_engineer')->group(function (): void {
+        Route::get('/assets/create', [AssetController::class, 'create'])->name('assets.create');
+        Route::post('/assets', [AssetController::class, 'store'])->name('assets.store');
+        Route::get('/assets/{asset}/edit', [AssetController::class, 'edit'])->name('assets.edit');
+        Route::put('/assets/{asset}', [AssetController::class, 'update'])->name('assets.update');
+    });
+
+    Route::get('/assets/{asset}', [AssetController::class, 'show'])->name('assets.show');
+
+    Route::get('/plans', [MaintenancePlanController::class, 'index'])->name('plans.index');
+
+    Route::middleware('role:chief_engineer')->group(function (): void {
+        Route::get('/plans/create', [MaintenancePlanController::class, 'create'])->name('plans.create');
+        Route::post('/plans', [MaintenancePlanController::class, 'store'])->name('plans.store');
+        Route::get('/plans/{plan}/edit', [MaintenancePlanController::class, 'edit'])->name('plans.edit');
+        Route::put('/plans/{plan}', [MaintenancePlanController::class, 'update'])->name('plans.update');
+        Route::post('/plans/{plan}/activate', [PlanActivationController::class, 'store'])->name('plans.activate');
+        Route::delete('/plans/{plan}/activate', [PlanActivationController::class, 'destroy'])->name('plans.deactivate');
+    });
+
+    Route::get('/plans/{plan}', [MaintenancePlanController::class, 'show'])->name('plans.show');
 
     Route::get('/admin/users', [UserController::class, 'index'])
         ->middleware('role:chief_engineer')
