@@ -123,3 +123,52 @@ Any change to an **Accepted** decision requires:
 3. Confirmation that no lecturer-mandated requirement is weakened.
 
 Changes to **Provisional** defaults may be made during implementation with a one-line note in the relevant phase report.
+
+---
+
+## 6. Development tooling — AI MCP servers (24 November 2026)
+
+**Status:** Accepted. This records developer tooling only; it does **not** change ADR-002 (stack) or ADR-003 (container-only runtime).
+
+| Item | Value |
+|---|---|
+| Laravel Boost | **2.10.4** (`laravel/boost`, `--dev`) |
+| Laravel / PHP (container) | **13.43.0** / **8.4.28** |
+| OpenCode | **v2.3.2**, V2 `mcp.servers` schema |
+| Node / npm | **22.22.1** / **9.2.0** |
+| Playwright MCP | `@playwright/mcp@latest` (headed default), bundled Chromium revision 1255 |
+| Host PHP | 8.5.4 — host Composer/scaffolding only; **not** used by the Boost MCP server |
+
+### 6.1 Scopes and configuration
+
+- **Laravel Boost — project scope.** `opencode.json` registers `laravel-boost` as `docker compose exec -T app php artisan boost:mcp`, with the project root as working directory. Boost therefore executes under PHP 8.4 inside the `app` container, consistent with ADR-003.
+- **Playwright — global scope.** `~/.config/opencode/opencode.json` registers `playwright` for all projects. It runs headed by default (browser visible) and uses the installed Chromium binary; the absolute browser path lives only in the user-level global config and is not committed.
+- **Preserved.** The existing Ollama provider/model (`ollama/qwen2.5-coder:14b`) is unchanged.
+- **Generated agent files.** Boost wrote `AGENTS.md`, `CLAUDE.md`, `boost.json`, `.mcp.json`, `.agents/` and `.claude/`. These are agent instruction/configuration files, not application code.
+
+### 6.2 Start and verify
+
+```sh
+cd ~/laravel/CMMS_S79244
+docker compose up -d
+docker compose exec -T app php artisan boost:mcp   # starts; exits 0 when stdin closes
+opencode mcp list                                   # expect: laravel-boost connected, playwright connected
+```
+
+### 6.3 Functional verification (executed 24 Nov 2026)
+
+- **Boost:** default connection `pgsql`; schema read from PostgreSQL 18; `get-absolute-url` returned `http://localhost:8080`; Laravel 13.x documentation search returned results; 10 routes listed.
+- **Playwright:** opened `https://demo.playwright.dev/todomvc`, added the todo "MCP smoke test", confirmed it appeared ("1 item left"), then closed the browser.
+
+### 6.4 Deliberate limitation
+
+These are general-purpose development assistants. They do **not** satisfy the assignment's separate read-only MCP deliverable (ADR-014; manual pp. 10–12). That deliverable still requires a purpose-built, read-only MCP server for the CMMS, with its own design and evidence.
+
+### 6.5 Portability fix (24 November 2026)
+
+The absolute host project path has been removed from both tracked MCP files:
+
+- `opencode.json` — now uses `"cwd": "."`. This is supported by the OpenCode local-server schema; relative paths resolve from the workspace.
+- `.mcp.json` — the Claude Code stdio schema defines no `cwd` field, so the Docker project directory is supplied as `--project-directory ${CLAUDE_PROJECT_DIR:-.}` (documented `${VAR:-default}` expansion). The redundant `wsl.exe` wrapper was removed; the Docker execution command is otherwise unchanged.
+
+Verified after the change: both files parse as valid JSON, `opencode mcp list` reports `laravel-boost` and `playwright` connected, Boost returned `http://localhost:8080`, and Playwright loaded `https://example.com`. No credentials are stored in either file; `.env` remains ignored.

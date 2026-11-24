@@ -1,13 +1,11 @@
 {
     "mcpServers": {
         "laravel-boost": {
-            "command": "wsl.exe",
+            "command": "docker",
             "args": [
-                "--",
-                "docker",
                 "compose",
                 "--project-directory",
-                "/home/zensworth/laravel/CMMS_S79244",
+                "${CLAUDE_PROJECT_DIR:-.}",
                 "exec",
                 "-T",
                 "app",

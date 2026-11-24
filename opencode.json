@@ -5,7 +5,7 @@
             "laravel-boost": {
                 "type": "local",
                 "command": ["docker", "compose", "exec", "-T", "app", "php", "artisan", "boost:mcp"],
-                "cwd": "/home/zensworth/laravel/CMMS_S79244"
+                "cwd": "."
             }
         }
     }
