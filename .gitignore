@@ -1,0 +1,59 @@
+# --- Secrets and environment ---
+/.env
+/.env.*
+!/.env.example
+/auth.json
+*.pem
+*.key
+*.crt
+credentials.json
+.cloudflared/
+.npmrc
+
+# --- Backups and database dumps (must stay outside pgdata and Git) ---
+/backups/
+*.dump
+*.sql
+*.sql.gz
+*.tar.gz
+
+# --- PHP / Composer ---
+/vendor/
+/storage/*.key
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/app/private/*
+!/storage/app/private/.gitkeep
+/storage/framework/cache/*
+!/storage/framework/cache/.gitignore
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+/storage/framework/views/*
+!/storage/framework/views/.gitignore
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
+.phpunit.result.cache
+/.phpunit.cache/
+/coverage/
+
+# --- Node / Vite ---
+/node_modules/
+/public/build/
+/public/hot
+/public/storage
+npm-debug.log*
+yarn-error.log*
+
+# --- SQLite (local only; PostgreSQL is the required database) ---
+/database/*.sqlite
+/database/*.sqlite-journal
+/database/*.sqlite-shm
+/database/*.sqlite-wal
+
+# --- Editors / OS ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~

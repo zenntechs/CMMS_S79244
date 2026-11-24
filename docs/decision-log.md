@@ -1,0 +1,125 @@
+# Project Decision Log
+
+**Project:** Shipyard CMMS — MNA4003 (FE-MNA4003-S12026-2027)
+**Student ID:** **S79244**
+**Purpose:** Record confirmed decisions, adopted defaults and their status. Required by the student's Phase 0 condition 3.
+
+**Status values**
+
+- **Accepted** — approved by the student or mandated by the lecturer.
+- **Provisional** — a sensible default adopted to avoid blocking work; may be changed without rework.
+- **Open** — not decided; requires the student or lecturer.
+
+**Requirement tags:** **[L]** lecturer-mandated, **[L-I]** lecturer-implied, **[R]** architect recommendation.
+
+---
+
+## 1. Binding decisions
+
+| ID | Decision | Status | Basis |
+|---|---|---|---|
+| ADR-001 | Student ID is **S79244**; hostnames use lowercase **`s79244`**; the short numeric form is never used alone | **Accepted** | Student correction |
+| ADR-002 | Stack: **Laravel 13.x**, **PHP 8.4**, **PostgreSQL 18**, **Docker Engine**, **Docker Compose v2**, **Blade + Tailwind CSS**, **Node.js 22**, **Composer 2.9**, **PHPUnit 12.5** | **Accepted** | Student approved the Laravel 13 adjustment on 19 Nov 2026; compatibility verified under condition 5. Supersedes the plan's Laravel 12 selection |
+| ADR-003 | Container-only toolchain: no host PHP/Node/Composer required; all build and runtime commands run in Docker | **Accepted** | Reproducibility; Ubuntu 26.04 packages PHP 8.5, not 8.4 |
+| ADR-004 | PostgreSQL is never published publicly; only the web app is reachable through Cloudflare Tunnel | **Accepted** | Student condition 7; manual p. 3 |
+| ADR-005 | Backups are stored outside the PostgreSQL data volume; never inside `pgdata` | **Accepted** | Student condition 8; manual p. 16 |
+| ADR-006 | No secrets in Git; `.env.example` only; backups/dumps/keys ignored | **Accepted** | Student condition 9; manual p. 16 |
+| ADR-007 | Existing analysis and plan documents are preserved unchanged | **Accepted** | Student condition 10 |
+| ADR-008 | Core assessed functions, tests, backup/restore, clean install and deployment precede optional features | **Accepted** | Student condition 6; manual p. 13 |
+| ADR-009 | Do not invent the missing assessment brief, domain, host or budget | **Accepted** | Student condition 4 |
+| ADR-010 | Lecturer-stated requirements outrank assumptions; all documents keep [L]/[L-I]/[R]/[?] tags | **Accepted** | Student condition 2 |
+| ADR-011 | Timezone `Asia/Kuala_Lumpur`; calendar due dates are local dates | **Accepted** | Manual p. 6 **[L]** |
+| ADR-012 | Three fixed roles: Chief Engineer, Technician, Viewer; enforced server-side | **Accepted** | Manual p. 8 **[L]** |
+| ADR-013 | One fictional vessel, 10 assets, 8 plans (3 calendar / 3 hours / 2 dual), 6 seed work orders, 6 spare items | **Accepted** | Manual pp. 1, 5 **[L]** |
+| ADR-014 | One reusable skill, two bounded agent roles, one read-only MCP, six AI decision records | **Accepted** | Manual pp. 10–12 **[L]** |
+
+### 1.1 Confirmed technology stack (19 November 2026)
+
+| Layer | Confirmed choice |
+|---|---|
+| Framework | Laravel 13.x |
+| Language | PHP 8.4 |
+| Database | PostgreSQL 18 |
+| Container runtime | Docker Engine |
+| Orchestration | Docker Compose v2 |
+| Frontend | Blade + Tailwind CSS |
+| Build/runtime JS | Node.js 22 |
+
+This list is the authoritative stack for implementation. The earlier Laravel 12 selection in `docs/implementation-plan.md` is superseded but the plan document itself is preserved unchanged.
+
+---
+
+## 2. Adopted defaults (provisional)
+
+These come from `docs/implementation-plan.md` §J.2 and the decision register. They are adopted to avoid blocking Phase 1 and are recorded here as required.
+
+| ID | Area | Default | Status | Can change later? |
+|---|---|---|---|---|
+| DEF-01 | Framework | Laravel 13 monolith | **Accepted** | No (architectural) |
+| DEF-02 | Frontend | Blade + Tailwind 4 + minimal Alpine | **Provisional** | Yes |
+| DEF-03 | Asset seed | Manual's suggested A01–A10 set (7 subsystems) | **Provisional** | Yes, schema unchanged |
+| DEF-04 | Calendar intervals | Days only; no month-based rules | **Provisional** | Yes, with due-engine work |
+| DEF-05 | Stock deduction | At **issue**; returns/receipts are positive movements | **Provisional** | Yes, if lecturer requires closure-time deduction |
+| DEF-06 | Dashboard "Due" | Separate Due and Overdue tiles; Overdue ⊆ Due; dual plan counted once; caption states the definition | **Provisional** | Yes |
+| DEF-07 | Work-order creation | Chief Engineer only | **Provisional** | Yes |
+| DEF-08 | Spare master/corrections | Chief Engineer only | **Provisional** | Yes |
+| DEF-09 | Technician visibility | Assigned work orders; read-only asset/plan/spare context | **Provisional** | Yes |
+| DEF-10 | Viewer visibility | All operational screens read-only; no audit access | **Provisional** | Yes |
+| DEF-11 | Exports | CSV (UTF-8, formula-injection guarded) | **Provisional** | Yes |
+| DEF-12 | Primary keys | UUID for domain tables; `bigserial` for audit/history | **Provisional** | Yes |
+| DEF-13 | Enums | Native PostgreSQL enum types mirrored by PHP backed enums | **Provisional** | Yes |
+| DEF-14 | History tables | `work_order_events` + `plan_baseline_history` | **Provisional** | Yes |
+| DEF-15 | Sessions | Database session driver | **Provisional** | Yes |
+| DEF-16 | Test date | Seeder uses 2026-12-02, override via `CMMS_TEST_DATE` | **Provisional** | Yes |
+| DEF-17 | Accounts | `*.test` synthetic emails; passwords only via approved private channel | **Provisional** | Yes |
+| DEF-18 | Release tag | `v1.0.0-s79244` | **Provisional** | Yes, if the brief requires a format |
+| DEF-19 | Login throttling | 5 attempts/minute | **Provisional** | Yes |
+| DEF-20 | Pagination | 20 rows | **Provisional** | Yes |
+| DEF-21 | Confirmation UI | Native browser confirm for close/return | **Provisional** | Yes |
+| DEF-22 | Docker images | `php:8.4-apache`, `postgres:18-alpine`, `composer:2`, `node:22`; pin digests after first pull | **Provisional** | Yes |
+| DEF-23 | Web server | Apache inside the app image | **Provisional** | Yes |
+| DEF-24 | App/DB roles | App role without DDL; migrations use owner role | **Provisional** | Yes |
+
+---
+
+## 3. Open decisions (must not be assumed)
+
+| ID | Question | Whose decision | Default if still unanswered |
+|---|---|---|---|
+| OPEN-01 | The approved assessment brief (dates, report format, submission channel, demo schedule) | Lecturer | Continue on manual + rubric; re-baseline when provided |
+| OPEN-02 | Exact hostname/domain and DNS owner | Lecturer | `s79244-cmms.<lecturer-domain>` |
+| OPEN-03 | Hosting arrangement and budget ceiling | Lecturer | Free/local + Cloudflare free tier |
+| OPEN-04 | Is the rubric final? | Lecturer | Treat manual as controlling |
+| OPEN-05 | Month-based intervals allowed? | Lecturer | Days only (DEF-04) |
+| OPEN-06 | Who creates work orders? | Lecturer | Chief Engineer (DEF-07) |
+| OPEN-07 | Technician read scope | Lecturer | Assigned only (DEF-09) |
+| OPEN-08 | Viewer audit access | Lecturer | No (DEF-10) |
+| OPEN-09 | Is CSV sufficient for "exports"? | Lecturer | Yes (DEF-11) |
+| OPEN-10 | Stock deduction point | Lecturer/student | At issue (DEF-05) |
+| OPEN-11 | Read-only Cloudflare docs MCP acceptable? | Lecturer | Yes; fallback only with approval |
+
+~~OPEN-12~~ **Resolved 19 Nov 2026:** Laravel 13 approved by the student (ADR-002).
+
+No domain, hosting provider, budget figure or missing-brief content has been invented.
+
+---
+
+## 4. Version policy
+
+- Pin exact versions in `composer.lock`, `package-lock.json` and Docker image digests.
+- Record installed versions in the README and deployment record.
+- Do not use floating `latest` tags in the committed Compose file.
+- Re-verify compatibility before any major upgrade.
+- Security fixes take priority over feature work near release.
+
+---
+
+## 5. Change procedure
+
+Any change to an **Accepted** decision requires:
+
+1. A new ADR entry in this file (or a superseding entry).
+2. A note in the Phase report or implementation notes.
+3. Confirmation that no lecturer-mandated requirement is weakened.
+
+Changes to **Provisional** defaults may be made during implementation with a one-line note in the relevant phase report.
