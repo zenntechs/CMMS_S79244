@@ -104,6 +104,17 @@ No domain, hosting provider, budget figure or missing-brief content has been inv
 
 ---
 
+## 7. Phase 2 database decisions (24 November 2026)
+
+| # | Decision | Status | Note |
+|---|---|---|---|
+| ADR-015 | `from_state`/`to_state` on `work_order_events` are native `work_order_state` enums, not `varchar` | Accepted | Stricter than requirements §8.2; consistent with plan §B.3 |
+| ADR-016 | `audit_events`, `plan_baseline_history`, `work_order_events`, `spare_movements` are append-only via `BEFORE UPDATE OR DELETE` triggers | Accepted | Exceeds the minimum (audit only); matches plan "append-only" wording |
+| ADR-017 | Meter monotonicity enforced by a `max(reading_hours)` trigger per asset | Accepted | Stricter than "latest reading" rule; rollover/replacement documented as a limitation |
+| ADR-018 | Closed work orders advance plan baselines at seed time (P03 → 2026-11-18, P05 → 4100.00 h) | Accepted | Consistent with FR-18; baselines differ from the illustrative matrix for those two plans |
+
+---
+
 ## 4. Version policy
 
 - Pin exact versions in `composer.lock`, `package-lock.json` and Docker image digests.

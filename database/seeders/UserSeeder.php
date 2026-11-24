@@ -57,16 +57,20 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($accounts as $account) {
-            User::updateOrCreate(
-                ['email' => $account['email']],
-                [
-                    'name' => $account['name'],
-                    'password' => Hash::make($password),
-                    'role' => $account['role'],
-                    'is_active' => $account['is_active'],
-                    'email_verified_at' => now(),
-                ],
-            );
+            $user = User::firstOrNew(['email' => $account['email']]);
+
+            $user->name = $account['name'];
+            $user->role = $account['role'];
+            $user->is_active = $account['is_active'];
+            $user->email_verified_at = $user->email_verified_at ?? now();
+
+            // Credentials are only written when the account is first created so
+            // that re-seeding never overwrites an existing password hash.
+            if (! $user->exists) {
+                $user->password = Hash::make($password);
+            }
+
+            $user->save();
         }
     }
 }
