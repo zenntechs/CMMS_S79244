@@ -34,6 +34,7 @@
                         <th class="px-4 py-3 text-left font-semibold text-slate-700">Asset</th>
                         <th class="px-4 py-3 text-left font-semibold text-slate-700">Trigger</th>
                         <th class="px-4 py-3 text-left font-semibold text-slate-700">Interval</th>
+                        <th class="px-4 py-3 text-left font-semibold text-slate-700">Status</th>
                         <th class="px-4 py-3 text-left font-semibold text-slate-700">Active</th>
                     </tr>
                 </thead>
@@ -49,10 +50,11 @@
                                 @if ($plan->usesCalendar()) {{ $plan->interval_days }} d @endif
                                 @if ($plan->usesHours()) {{ number_format((float) $plan->interval_hours, 2) }} h @endif
                             </td>
+                            <td class="px-4 py-3 text-slate-600">{{ $dueStatuses[$plan->id]->state->label() }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $plan->is_active ? 'Yes' : 'No' }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="px-4 py-6 text-center text-slate-500">No plans found.</td></tr>
+                        <tr><td colspan="6" class="px-4 py-6 text-center text-slate-500">No plans found.</td></tr>
                     @endforelse
                 </tbody>
             </table>

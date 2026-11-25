@@ -6,6 +6,8 @@ use App\Http\Requests\StoreMaintenancePlanRequest;
 use App\Http\Requests\UpdateMaintenancePlanRequest;
 use App\Models\Asset;
 use App\Models\MaintenancePlan;
+use App\Services\DueStatusCalculator;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -13,14 +15,22 @@ class MaintenancePlanController extends Controller
 {
     public function index(): View
     {
-        $plans = MaintenancePlan::with('asset')
+        $plans = MaintenancePlan::with('asset.latestMeterReading')
             ->when(request('trigger_type'), fn ($q, $t) => $q->where('trigger_type', $t))
             ->when(request('is_active'), fn ($q, $a) => $q->where('is_active', $a === '1'))
             ->orderBy('code')
             ->paginate(20)
             ->withQueryString();
 
-        return view('plans.index', compact('plans'));
+        $calculator = new DueStatusCalculator;
+        $today = CarbonImmutable::today(config('app.timezone'));
+        $dueStatuses = [];
+        foreach ($plans as $plan) {
+            $reading = $plan->asset->latestMeterReading;
+            $dueStatuses[$plan->id] = $calculator->calculateForPlan($plan, $reading ? (string) $reading->reading_hours : null, $today);
+        }
+
+        return view('plans.index', compact('plans', 'dueStatuses'));
     }
 
     public function create(): View
@@ -42,9 +52,13 @@ class MaintenancePlanController extends Controller
 
     public function show(MaintenancePlan $plan): View
     {
-        $plan->load('asset', 'workOrders');
+        $plan->load('asset.latestMeterReading', 'workOrders');
+        $reading = $plan->asset->latestMeterReading;
+        $calculator = new DueStatusCalculator;
+        $today = CarbonImmutable::today(config('app.timezone'));
+        $dueStatus = $calculator->calculateForPlan($plan, $reading ? (string) $reading->reading_hours : null, $today);
 
-        return view('plans.show', compact('plan'));
+        return view('plans.show', compact('plan', 'dueStatus'));
     }
 
     public function edit(MaintenancePlan $plan): View
