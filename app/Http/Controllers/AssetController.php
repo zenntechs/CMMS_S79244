@@ -49,9 +49,16 @@ class AssetController extends Controller
 
     public function show(Asset $asset): View
     {
-        $asset->load('vessel', 'maintenancePlans', 'meterReadings');
+        $asset->load('vessel', 'maintenancePlans', 'latestMeterReading');
 
-        return view('assets.show', compact('asset'));
+        $recentReadings = $asset->meterReadings()
+            ->with('recordedBy')
+            ->orderByDesc('reading_at')
+            ->orderByDesc('id')
+            ->limit(5)
+            ->get();
+
+        return view('assets.show', compact('asset', 'recentReadings'));
     }
 
     public function edit(Asset $asset): View

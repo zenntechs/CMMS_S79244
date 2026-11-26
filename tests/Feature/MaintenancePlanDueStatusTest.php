@@ -27,7 +27,7 @@ class MaintenancePlanDueStatusTest extends TestCase
     public function test_latest_reading_uses_timestamp_primary_and_id_tie_break(): void
     {
         $chief = User::where('email', 'chief@cmms.test')->firstOrFail();
-        $asset = Asset::factory()->hourMeter()->create();
+        $asset = Asset::factory()->hourMeter()->create(['code' => 'Z91']);
 
         // Creation order gives increasing UUIDv7 identifiers. The reading with the
         // newest id has the OLDEST timestamp, proving id must not be the primary key.
@@ -62,7 +62,7 @@ class MaintenancePlanDueStatusTest extends TestCase
     public function test_equal_timestamps_use_id_descending_tie_break(): void
     {
         $chief = User::where('email', 'chief@cmms.test')->firstOrFail();
-        $asset = Asset::factory()->hourMeter()->create();
+        $asset = Asset::factory()->hourMeter()->create(['code' => 'Z92']);
 
         $this->reading($asset, $chief, '100.00', '2026-11-15 08:00');
         $this->reading($asset, $chief, '300.00', '2026-11-15 08:00');
@@ -155,7 +155,7 @@ class MaintenancePlanDueStatusTest extends TestCase
     public function test_incomplete_and_inactive_indicators_are_shown(): void
     {
         $chief = User::where('email', 'chief@cmms.test')->firstOrFail();
-        $asset = Asset::factory()->create(['has_hour_meter' => false]);
+        $asset = Asset::factory()->create(['code' => 'Z93', 'has_hour_meter' => false]);
         $plan = MaintenancePlan::factory()->hours()->for($asset)->create([
             'code' => 'T93',
             'is_active' => false,
@@ -172,6 +172,7 @@ class MaintenancePlanDueStatusTest extends TestCase
     {
         $chief = User::where('email', 'chief@cmms.test')->firstOrFail();
         $asset = Asset::factory()->hourMeter()->create([
+            'code' => 'Z94',
             'service_status' => ServiceStatus::Withdrawn,
         ]);
         $this->reading($asset, $chief, '100.00', '2026-11-15 08:00');

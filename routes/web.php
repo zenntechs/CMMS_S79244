@@ -4,6 +4,7 @@ use App\Http\Controllers\AssetController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MaintenancePlanController;
+use App\Http\Controllers\MeterReadingController;
 use App\Http\Controllers\PlanActivationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VesselController;
@@ -35,6 +36,12 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     });
 
     Route::get('/assets/{asset}', [AssetController::class, 'show'])->name('assets.show');
+
+    Route::get('/assets/{asset}/readings', [MeterReadingController::class, 'index'])->name('assets.readings.index');
+
+    Route::post('/assets/{asset}/readings', [MeterReadingController::class, 'store'])
+        ->middleware('role:chief_engineer,technician')
+        ->name('assets.readings.store');
 
     Route::get('/plans', [MaintenancePlanController::class, 'index'])->name('plans.index');
 

@@ -26,4 +26,9 @@ class AssetPolicy
     {
         return $user->isChiefEngineer();
     }
+
+    public function recordReading(User $user, Asset $asset): bool
+    {
+        return $user->isChiefEngineer() || $user->isTechnician();
+    }
 }
