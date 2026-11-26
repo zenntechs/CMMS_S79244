@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -29,6 +30,14 @@ class MeterReading extends Model
     public function asset(): BelongsTo
     {
         return $this->belongsTo(Asset::class);
+    }
+
+    /**
+     * Reading instant expressed in the application timezone for display.
+     */
+    public function localReadingAt(): CarbonImmutable
+    {
+        return $this->reading_at->toImmutable()->setTimezone(config('app.timezone'));
     }
 
     /**

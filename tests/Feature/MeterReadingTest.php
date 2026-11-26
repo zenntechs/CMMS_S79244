@@ -14,6 +14,7 @@ use Database\Seeders\DatabaseSeeder;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class MeterReadingTest extends TestCase
@@ -206,7 +207,7 @@ class MeterReadingTest extends TestCase
         ])->assertSessionHasErrors('reading_hours');
     }
 
-    public function test_equal_timestamps_use_id_descending_and_history_is_preserved(): void
+    public function test_equal_timestamps_accept_duplicates_but_reject_conflicting_values(): void
     {
         $asset = Asset::where('code', 'A01')->firstOrFail();
         $tech = User::where('email', 'tech1@cmms.test')->firstOrFail();
@@ -217,18 +218,111 @@ class MeterReadingTest extends TestCase
             'reading_at' => '2026-11-25T10:00',
         ])->assertSessionHasNoErrors();
 
+        // A different value at the same instant is ambiguous: UUIDv7 ids are only
+        // millisecond-ordered, so "id DESC" could select the lower value.
         $this->actingAs($tech)->post(route('assets.readings.store', $asset), [
             'reading_hours' => '1275.00',
             'reading_at' => '2026-11-25T10:00',
+        ])->assertSessionHasErrors('reading_at');
+
+        // An exact duplicate at the same instant is harmless and accepted.
+        $this->actingAs($tech)->post(route('assets.readings.store', $asset), [
+            'reading_hours' => '1270.00',
+            'reading_at' => '2026-11-25T10:00',
         ])->assertSessionHasNoErrors();
 
-        $this->assertSame($before + 2, $asset->meterReadings()->count());
+        // A later timestamp resolves the increase deterministically.
+        $this->actingAs($tech)->post(route('assets.readings.store', $asset), [
+            'reading_hours' => '1275.00',
+            'reading_at' => '2026-11-25T10:01',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame($before + 3, $asset->meterReadings()->count());
         $this->assertSame('1275.00', $asset->fresh()->latestMeterReading->reading_hours);
+        $this->assertSame('2026-11-25 10:01:00', $asset->fresh()->latestMeterReading->localReadingAt()->toDateTimeString());
 
         $this->actingAs($tech)
             ->get(route('assets.readings.index', $asset))
             ->assertOk()
             ->assertSeeInOrder(['1,275.00', '1,270.00']);
+    }
+
+    public function test_timestamps_round_trip_as_utc_instants_and_display_in_kuala_lumpur(): void
+    {
+        $asset = Asset::where('code', 'A01')->firstOrFail();
+        $tech = User::where('email', 'tech1@cmms.test')->firstOrFail();
+
+        $this->actingAs($tech)->post(route('assets.readings.store', $asset), [
+            'reading_hours' => '1300.00',
+            'reading_at' => '2026-11-25T11:00',
+        ])->assertSessionHasNoErrors();
+
+        $latest = $asset->fresh()->latestMeterReading;
+
+        // 11:00 Asia/Kuala_Lumpur is 03:00 UTC.
+        $this->assertSame('2026-11-25 03:00:00', $latest->reading_at->utc()->toDateTimeString());
+        $this->assertSame('2026-11-25 11:00:00', $latest->localReadingAt()->toDateTimeString());
+
+        $raw = (string) DB::table('meter_readings')->where('id', $latest->id)->value('reading_at');
+        $this->assertStringStartsWith('2026-11-25 03:00:00', $raw);
+
+        $this->actingAs($tech)
+            ->get(route('assets.readings.index', $asset))
+            ->assertOk()
+            ->assertSee('2026-11-25 11:00:00')
+            ->assertDontSee('2026-11-25 03:00:00');
+    }
+
+    public function test_equivalent_instants_are_compared_correctly_across_timezones(): void
+    {
+        $asset = Asset::factory()->hourMeter()->create(['code' => 'Z96']);
+        $tech = User::where('email', 'tech1@cmms.test')->firstOrFail();
+        $service = app(MeterReadingService::class);
+
+        // 11:00 KL and 03:00 UTC are the same instant.
+        $service->record($asset, '200.00', CarbonImmutable::parse('2026-11-25 03:00:00', 'UTC'), $tech);
+
+        try {
+            $service->record($asset, '300.00', CarbonImmutable::parse('2026-11-25 11:00:00', 'Asia/Kuala_Lumpur'), $tech);
+            $this->fail('Expected the equal-instant conflicting value to be rejected.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('reading_at', $exception->errors());
+        }
+
+        // Same instant with the same value is an accepted duplicate.
+        $service->record($asset, '200.00', CarbonImmutable::parse('2026-11-25 11:00:00', 'Asia/Kuala_Lumpur'), $tech);
+
+        // One second later accepts the increase.
+        $service->record($asset, '300.00', CarbonImmutable::parse('2026-11-25 11:00:01', 'Asia/Kuala_Lumpur'), $tech);
+
+        $this->assertSame('300.00', $asset->fresh()->latestMeterReading->reading_hours);
+        $this->assertSame('2026-11-25 11:00:01', $asset->fresh()->latestMeterReading->localReadingAt()->toDateTimeString());
+    }
+
+    public function test_midnight_and_now_boundaries_in_kuala_lumpur(): void
+    {
+        $asset = Asset::factory()->hourMeter()->create(['code' => 'Z97']);
+        $tech = User::where('email', 'tech1@cmms.test')->firstOrFail();
+        $service = app(MeterReadingService::class);
+
+        // Midnight KL on 25 Nov is 16:00 UTC on 24 Nov.
+        $service->record($asset, '100.00', CarbonImmutable::parse('2026-11-25 00:00:00', 'Asia/Kuala_Lumpur'), $tech);
+        $this->assertSame('2026-11-25 00:00:00', $asset->fresh()->latestMeterReading->localReadingAt()->toDateTimeString());
+
+        // 23:59 KL on 24 Nov is an earlier instant; an equal value is accepted but
+        // must not replace the later midnight reading.
+        $service->record($asset, '100.00', CarbonImmutable::parse('2026-11-24 23:59:00', 'Asia/Kuala_Lumpur'), $tech);
+        $this->assertSame('2026-11-25 00:00:00', $asset->fresh()->latestMeterReading->localReadingAt()->toDateTimeString());
+
+        // Exactly "now" is accepted; one second ahead is rejected.
+        $service->record($asset, '110.00', CarbonImmutable::now(), $tech);
+
+        try {
+            $service->record($asset, '120.00', CarbonImmutable::now()->addSecond(), $tech);
+            $this->fail('Expected a future timestamp to be rejected.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('reading_at', $exception->errors());
+        }
     }
 
     public function test_readings_page_and_asset_panel_follow_role_permissions(): void
@@ -348,5 +442,27 @@ class MeterReadingTest extends TestCase
         }
 
         $this->assertSame($before, $asset->meterReadings()->count());
+    }
+
+    public function test_returned_model_and_audit_payload_carry_the_true_utc_instant(): void
+    {
+        $asset = Asset::factory()->hourMeter()->create(['code' => 'Z98']);
+        $tech = User::where('email', 'tech1@cmms.test')->firstOrFail();
+        $service = app(MeterReadingService::class);
+        $at = CarbonImmutable::parse('2026-11-25 11:00:00', 'Asia/Kuala_Lumpur');
+
+        $reading = $service->record($asset, '100.00', $at, $tech, 'instant probe');
+
+        // 11:00 KL is 03:00 UTC; both the returned model and the audit payload must
+        // carry that instant rather than a naive wall-clock value.
+        $this->assertSame('2026-11-25 03:00:00', $reading->reading_at->utc()->toDateTimeString());
+        $this->assertSame('2026-11-25 11:00:00', $reading->localReadingAt()->toDateTimeString());
+
+        $audit = AuditEvent::where('entity_id', $reading->id)->firstOrFail();
+
+        $this->assertSame('2026-11-25T03:00:00+00:00', $audit->after['reading_at']);
+        $this->assertTrue(
+            CarbonImmutable::parse($audit->after['reading_at'])->utc()->equalTo($at->utc())
+        );
     }
 }

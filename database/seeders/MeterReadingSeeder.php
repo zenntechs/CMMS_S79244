@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Asset;
 use App\Models\MeterReading;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 
 class MeterReadingSeeder extends Seeder
@@ -36,7 +37,7 @@ class MeterReadingSeeder extends Seeder
                     [
                         'asset_id' => $assetId,
                         'reading_hours' => $hours,
-                        'reading_at' => $at,
+                        'reading_at' => CarbonImmutable::parse($at, 'Asia/Kuala_Lumpur')->utc(),
                         'recorded_by' => $actorId,
                         'note' => 'Synthetic teaching scenario.',
                     ]

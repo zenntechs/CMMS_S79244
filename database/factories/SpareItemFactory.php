@@ -15,7 +15,7 @@ class SpareItemFactory extends Factory
     public function definition(): array
     {
         return [
-            'code' => fake()->unique()->bothify('SP-###'),
+            'code' => fake()->unique()->bothify('TST-SP-####'),
             'description' => fake()->words(3, true),
             'unit' => 'piece',
             'quantity_on_hand' => 10,

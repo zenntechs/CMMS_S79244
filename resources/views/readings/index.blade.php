@@ -22,7 +22,7 @@
                 </div>
                 <div>
                     <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Last accepted reading</dt>
-                    <dd class="mt-1 text-sm text-slate-900">{{ $latest?->reading_at?->toDateTimeString() ?? '—' }}</dd>
+                    <dd class="mt-1 text-sm text-slate-900">{{ $latest?->localReadingAt()->toDateTimeString() ?? '—' }}</dd>
                 </div>
                 <div>
                     <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Hour meter</dt>
@@ -62,7 +62,7 @@
                 <tbody class="divide-y divide-slate-100">
                     @forelse ($readings as $reading)
                         <tr>
-                            <td class="px-4 py-3 text-slate-700">{{ $reading->reading_at->toDateTimeString() }}</td>
+                            <td class="px-4 py-3 text-slate-700">{{ $reading->localReadingAt()->toDateTimeString() }}</td>
                             <td class="px-4 py-3 font-medium text-slate-900">{{ number_format((float) $reading->reading_hours, 2) }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $reading->recordedBy?->name ?? '—' }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $reading->note ?? '—' }}</td>

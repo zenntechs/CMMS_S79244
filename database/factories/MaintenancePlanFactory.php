@@ -18,7 +18,7 @@ class MaintenancePlanFactory extends Factory
     {
         return [
             'asset_id' => Asset::factory(),
-            'code' => fake()->unique()->bothify('P##'),
+            'code' => fake()->unique()->bothify('PLN-####'),
             'task_description' => fake()->sentence(),
             'trigger_type' => PlanTrigger::Calendar,
             'interval_days' => 30,

@@ -27,7 +27,10 @@ class MeterReadingService
         User $actor,
         ?string $note = null,
     ): MeterReading {
-        return DB::transaction(function () use ($asset, $hours, $at, $actor, $note): MeterReading {
+        $at = $at->utc();
+        $now = CarbonImmutable::now();
+
+        return DB::transaction(function () use ($asset, $hours, $at, $now, $actor, $note): MeterReading {
             $locked = Asset::query()->whereKey($asset->getKey())->lockForUpdate()->firstOrFail();
 
             if (! $locked->has_hour_meter) {
@@ -36,7 +39,7 @@ class MeterReadingService
                 ]);
             }
 
-            if ($at->greaterThan(CarbonImmutable::now())) {
+            if ($at->greaterThan($now)) {
                 throw ValidationException::withMessages([
                     'reading_at' => 'The reading timestamp cannot be in the future.',
                 ]);
@@ -56,18 +59,22 @@ class MeterReadingService
                 ]);
             }
 
-            // Reading timestamps are recorded as Asia/Kuala_Lumpur wall-clock values
-            // (the existing Phase 2 seed convention for the timestamptz column), so the
-            // chronological comparison uses the stored wall-clock digits, not an offset.
-            $latestAt = $latest?->reading_at->format('Y-m-d H:i:s');
-            $newAt = $at->format('Y-m-d H:i:s');
-
             // A backdated reading may only repeat the current maximum; a higher value
-            // at an earlier timestamp would make the chronological sequence decrease.
-            if ($latestAt !== null && $newAt < $latestAt
+            // at an earlier instant would make the chronological sequence decrease.
+            if ($latest !== null && $at->lessThan($latest->reading_at)
                 && bccomp($hours, (string) $highest, 2) > 0) {
                 throw ValidationException::withMessages([
                     'reading_hours' => 'A backdated reading cannot exceed the latest accepted reading; record the increase with a current or later timestamp.',
+                ]);
+            }
+
+            // UUIDv7 ids are time-ordered only to the millisecond; two different values
+            // at the same instant cannot be deterministically ordered. Reject the
+            // ambiguity and require a later timestamp.
+            if ($latest !== null && $at->equalTo($latest->reading_at)
+                && bccomp($hours, (string) $latest->reading_hours, 2) !== 0) {
+                throw ValidationException::withMessages([
+                    'reading_at' => 'Another reading already exists at this timestamp; use a later timestamp for a different value.',
                 ]);
             }
 
@@ -88,15 +95,17 @@ class MeterReadingService
                 'after' => [
                     'asset_id' => $locked->id,
                     'reading_hours' => (string) $reading->reading_hours,
-                    'reading_at' => $reading->reading_at->toIso8601String(),
+                    'reading_at' => $at->toIso8601String(),
                     'recorded_by' => $actor->id,
                     'note' => $note,
                 ],
                 'reason' => null,
-                'occurred_at' => CarbonImmutable::now(),
             ]);
 
-            return $reading;
+            // Re-read the row so the returned model carries the timestamptz instant;
+            // the freshly inserted attributes hold a naive UTC string that the
+            // datetime cast would otherwise interpret in the application timezone.
+            return $reading->refresh();
         });
     }
 }

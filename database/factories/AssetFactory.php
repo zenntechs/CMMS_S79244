@@ -19,7 +19,7 @@ class AssetFactory extends Factory
     {
         return [
             'vessel_id' => Vessel::factory(),
-            'code' => fake()->unique()->bothify('A##'),
+            'code' => fake()->unique()->bothify('AST-####'),
             'name' => fake()->words(3, true),
             'subsystem' => fake()->randomElement([
                 'Propulsion', 'Transmission', 'Electrical power', 'Bilge system',

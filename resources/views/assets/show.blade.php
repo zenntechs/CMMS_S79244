@@ -36,7 +36,7 @@
                         </div>
                         <div>
                             <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Last accepted reading</dt>
-                            <dd class="mt-1 text-sm text-slate-900">{{ $asset->latestMeterReading?->reading_at?->toDateTimeString() ?? '—' }}</dd>
+                            <dd class="mt-1 text-sm text-slate-900">{{ $asset->latestMeterReading?->localReadingAt()->toDateTimeString() ?? '—' }}</dd>
                         </div>
                         <div>
                             <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Service status</dt>
@@ -49,7 +49,7 @@
                             @foreach ($recentReadings as $reading)
                                 <li class="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm">
                                     <span class="font-medium text-slate-900">{{ number_format((float) $reading->reading_hours, 2) }} h</span>
-                                    <span class="text-slate-600">{{ $reading->reading_at->toDateTimeString() }}</span>
+                                    <span class="text-slate-600">{{ $reading->localReadingAt()->toDateTimeString() }}</span>
                                     <span class="text-slate-500">{{ $reading->recordedBy?->name ?? '—' }}</span>
                                 </li>
                             @endforeach

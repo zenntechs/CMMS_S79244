@@ -18,7 +18,7 @@ class WorkOrderFactory extends Factory
     public function definition(): array
     {
         return [
-            'reference' => fake()->unique()->bothify('WO-###'),
+            'reference' => fake()->unique()->bothify('TST-WO-####'),
             'plan_id' => MaintenancePlan::factory(),
             'state' => WorkOrderState::Open,
             'assigned_to' => null,

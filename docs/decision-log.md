@@ -183,3 +183,17 @@ The absolute host project path has been removed from both tracked MCP files:
 - `.mcp.json` — the Claude Code stdio schema defines no `cwd` field, so the Docker project directory is supplied as `--project-directory ${CLAUDE_PROJECT_DIR:-.}` (documented `${VAR:-default}` expansion). The redundant `wsl.exe` wrapper was removed; the Docker execution command is otherwise unchanged.
 
 Verified after the change: both files parse as valid JSON, `opencode mcp list` reports `laravel-boost` and `playwright` connected, Boost returned `http://localhost:8080`, and Playwright loaded `https://example.com`. No credentials are stored in either file; `.env` remains ignored.
+
+---
+
+## 8. Phase 5 meter-reading decisions (26 November 2026)
+
+| # | Decision | Status | Note |
+|---|---|---|---|
+| ADR-019 | Meter readings are written by `MeterReadingService` inside a database transaction that locks the asset row (`SELECT … FOR UPDATE`) before checking monotonicity and inserting | Accepted | Serialises concurrent submissions per asset; the `meter_readings_no_decrease` trigger remains the final integrity backstop |
+| ADR-020 | `reading_at` is stored as a true UTC instant (`timestamptz`); form input is interpreted in `Asia/Kuala_Lumpur` and converted to UTC, and display converts back to KL | Accepted | Matches ADR-011. The Phase 2 seeder wrote UTC-labelled wall-clock strings, so the 16 existing development rows stored 09:30 UTC (17:30 KL) instead of the intended 09:30 KL. The seeder was corrected for fresh databases and the 16 legacy rows were corrected with a narrowly scoped, transactional command (`php artisan cmms:correct-legacy-meter-timestamps --apply`); a fresh backup is retained and the command is idempotent. |
+| ADR-021 | Monotonicity floor is the highest accepted reading per asset; equal readings are accepted; future-dated readings are rejected; backdated increases are rejected; a different value at an already-used instant is rejected | Accepted | UUIDv7 ids are only millisecond-ordered, so `id DESC` cannot deterministically rank conflicting values at the same instant; exact duplicates remain harmless |
+| ADR-022 | Withdrawn or standby assets may still receive readings when `has_hour_meter` is true; only the meter flag gates submission | Accepted | FR-05 keeps withdrawn assets as history; no planning document authorises blocking their meter records |
+| ADR-023 | Test factories use non-overlapping code prefixes (`AST-####`, `PLN-####`, `TST-SP-####`, `TST-WO-####`) | Accepted | Root cause of intermittent `UniqueConstraintViolationException`: random `A##`/`P##` values collided with seeded `A01…`/`P01…` codes |
+| ADR-024 | The 16 legacy seed meter-reading timestamps are corrected by `cmms:correct-legacy-meter-timestamps`, which disables `meter_readings_no_decrease` only inside its transaction and always re-enables it; the command is idempotent and refuses unexpected row states | Accepted | Trigger comparison uses `max(reading_hours)` across all other rows, so updating an earlier row's timestamp would otherwise fail even though hours are unchanged. Backup `/tmp/opencode/p5backup/cmms-pre-phase5-fix.dump` (outside repository) precedes the change. |
+| ADR-025 | The audit payload and the value returned by `MeterReadingService::record()` use the normalised UTC instant (`$at->toIso8601String()`) and a refreshed model | Accepted | Eloquent stores the naive UTC wall-clock string on insert, which the `datetime` cast would otherwise re-interpret in the application timezone; the service now refreshes the model before returning. |
