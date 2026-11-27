@@ -258,3 +258,13 @@ Verified after the change: both files parse as valid JSON, `opencode mcp list` r
 | ADR-042 | Duplicate stock submissions are prevented only in the browser; server-side idempotency is not implemented | Accepted | Repeated identical valid requests remain separate movements. |
 | ADR-043 | Issuing stock to submitted work orders remains permitted for active work orders | Accepted | The approved requirements do not require rejection after submission; the behaviour is documented. |
 | ADR-044 | The seeded `SP-001` ledger discrepancy is reported but not corrected | Accepted | Correcting demonstration stock would violate data-preservation requirements. |
+
+---
+
+## 15. Phase 8A dashboard decisions (27 November 2026)
+
+| # | Decision | Status | Note |
+|---|---|---|---|
+| ADR-045 | Dashboard due status is calculated only through the existing DueStatusCalculator | Accepted | No second scheduling implementation was introduced. |
+| ADR-046 | Technician work-order statistics are scoped to assigned work orders | Accepted | Chief Engineer and Viewer see aggregate totals for all work orders. |
+| ADR-047 | Dashboard inventory low-stock status uses quantity_on_hand < reorder_level | Accepted | Consistent with Phase 7A and 7B. |
