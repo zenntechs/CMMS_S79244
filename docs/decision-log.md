@@ -248,3 +248,13 @@ Verified after the change: both files parse as valid JSON, `opencode mcp list` r
 | ADR-039 | Stock changes use signed spare movements with row locking and one transaction | Accepted | Receipt, adjustment and issue update `quantity_on_hand`, insert the movement and write audit records atomically. |
 | ADR-040 | Stock can be issued only to active work orders by the Chief Engineer or the assigned Technician | Accepted | Closed work orders cannot receive spare issues. |
 | ADR-041 | Stock movements use exact decimal arithmetic with `bcadd` and `bcsub` | Accepted | No floating-point arithmetic is used for inventory quantities. |
+
+---
+
+## 14. Phase 7C inventory integrity decisions (27 November 2026)
+
+| # | Decision | Status | Note |
+|---|---|---|---|
+| ADR-042 | Duplicate stock submissions are prevented only in the browser; server-side idempotency is not implemented | Accepted | Repeated identical valid requests remain separate movements. |
+| ADR-043 | Issuing stock to submitted work orders remains permitted for active work orders | Accepted | The approved requirements do not require rejection after submission; the behaviour is documented. |
+| ADR-044 | The seeded `SP-001` ledger discrepancy is reported but not corrected | Accepted | Correcting demonstration stock would violate data-preservation requirements. |

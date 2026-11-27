@@ -189,7 +189,7 @@
             @endif
 
             @can('issueSpare', $workOrder)
-                <form method="POST" action="{{ route('work-orders.spares.store', $workOrder) }}" class="mt-4 grid gap-3 border-t border-slate-200 pt-4 sm:grid-cols-4">
+                <form method="POST" action="{{ route('work-orders.spares.store', $workOrder) }}" class="mt-4 grid gap-3 border-t border-slate-200 pt-4 sm:grid-cols-4" onsubmit="const button=this.querySelector('button[type=submit]'); if(button){button.disabled=true;button.textContent='Processing...';}">
                     @csrf
                     <div class="sm:col-span-2">
                         <label for="spare_item_id" class="block text-sm font-medium text-slate-700">Spare item</label>

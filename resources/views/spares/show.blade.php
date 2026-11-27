@@ -52,7 +52,7 @@
 
         @can('receive', $spareItem)
             <div class="grid gap-4 sm:grid-cols-2">
-                <form method="POST" action="{{ route('spares.receipt', $spareItem) }}" class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+                <form method="POST" action="{{ route('spares.receipt', $spareItem) }}" class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-3" onsubmit="const button=this.querySelector('button[type=submit]'); if(button){button.disabled=true;button.textContent='Processing...';}">
                     @csrf
                     <h2 class="text-sm font-semibold text-slate-700">Receive stock</h2>
                     <div>
@@ -66,7 +66,7 @@
                     <button type="submit" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">Receive stock</button>
                 </form>
 
-                <form method="POST" action="{{ route('spares.adjustment', $spareItem) }}" class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+                <form method="POST" action="{{ route('spares.adjustment', $spareItem) }}" class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-3" onsubmit="const button=this.querySelector('button[type=submit]'); if(button){button.disabled=true;button.textContent='Processing...';}">
                     @csrf
                     <h2 class="text-sm font-semibold text-slate-700">Adjust stock</h2>
                     <div>
