@@ -52,7 +52,7 @@ class MaintenancePlanController extends Controller
 
     public function show(MaintenancePlan $plan): View
     {
-        $plan->load('asset.latestMeterReading', 'workOrders');
+        $plan->load('asset.latestMeterReading', 'workOrders', 'baselineHistory.changedBy');
         $reading = $plan->asset->latestMeterReading;
         $calculator = new DueStatusCalculator;
         $today = CarbonImmutable::today(config('app.timezone'));

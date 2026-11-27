@@ -60,6 +60,22 @@
             </form>
         @endcan
 
+        @if ($plan->baselineHistory->isNotEmpty())
+            <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-200 px-4 py-3"><h2 class="text-sm font-semibold text-slate-900">Baseline history</h2></div>
+                <ul class="divide-y divide-slate-100">
+                    @foreach ($plan->baselineHistory->sortByDesc('changed_at') as $history)
+                        <li class="px-4 py-3 text-sm text-slate-700">
+                            {{ $history->changed_at->format('Y-m-d H:i') }} by {{ $history->changedBy->name }} —
+                            @if ($plan->usesCalendar()) date {{ $history->previous_date?->toDateString() ?? '—' }} → {{ $history->new_date?->toDateString() ?? '—' }}; @endif
+                            @if ($plan->usesHours()) hours {{ $history->previous_hours !== null ? number_format((float) $history->previous_hours, 2) : '—' }} → {{ $history->new_hours !== null ? number_format((float) $history->new_hours, 2) : '—' }} @endif
+                            (work order {{ $history->workOrder->reference }})
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         @if ($plan->workOrders->isNotEmpty())
             <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
                 <div class="border-b border-slate-200 px-4 py-3"><h2 class="text-sm font-semibold text-slate-900">Work orders</h2></div>

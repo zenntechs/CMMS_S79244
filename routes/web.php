@@ -67,6 +67,7 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::post('/work-orders/{workOrder}/start', [WorkOrderController::class, 'start'])->name('work-orders.start');
     Route::post('/work-orders/{workOrder}/submit', [WorkOrderController::class, 'submit'])->name('work-orders.submit');
     Route::post('/work-orders/{workOrder}/return', [WorkOrderController::class, 'returnToTechnician'])->name('work-orders.return');
+    Route::post('/work-orders/{workOrder}/close', [WorkOrderController::class, 'close'])->name('work-orders.close');
 
     Route::get('/work-orders/{workOrder}', [WorkOrderController::class, 'show'])->name('work-orders.show');
 

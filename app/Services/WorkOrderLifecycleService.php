@@ -196,6 +196,18 @@ class WorkOrderLifecycleService
      * @param  array<string, mixed>  $data
      * @return array{actual_completion_date: string, actual_completion_hours: string|null, completion_notes: string, evidence_ref: string|null}
      */
+    public function validatedCompletionForClosure(MaintenancePlan $plan, WorkOrder $workOrder): array
+    {
+        return $this->validatedCompletion($plan, [
+            'actual_completion_date' => $workOrder->actual_completion_date?->toDateString(),
+            'actual_completion_hours' => $workOrder->actual_completion_hours !== null
+                ? (string) $workOrder->actual_completion_hours
+                : null,
+            'completion_notes' => $workOrder->completion_notes,
+            'evidence_ref' => $workOrder->evidence_ref,
+        ]);
+    }
+
     private function validatedCompletion(MaintenancePlan $plan, array $data): array
     {
         $dateInput = trim((string) ($data['actual_completion_date'] ?? ''));

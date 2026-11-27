@@ -4,13 +4,13 @@
 **Student ID:** S79244
 **Phase:** 6 — Work orders
 **Phase 5 checkpoint:** `639af0647b3430c3c606f6941f37d3cbcba85600`
-**Status:** 6B COMPLETE — lifecycle transitions, completion submission and Chief Engineer return verified
+**Status:** 6C COMPLETE — atomic closure, baseline advancement and Phase 6 complete
 
 ## Milestones
 
 - 6A — Work-order registry, creation and assignment (complete).
 - 6B — Lifecycle transitions, completion submission and return (complete).
-- 6C — Closure, approval, atomic baseline advancement and final verification (not started).
+- 6C — Closure, approval, atomic baseline advancement and final verification (complete).
 
 ## Phase 6B implementation and verification
 
@@ -143,7 +143,35 @@ Never run `docker compose down -v` against either project.
 3. The deployment project retains a stale Compose configuration label from the pre-correction
    swap; actual mounts and runtime settings are correct.
 
-## Remaining Phase 6B and 6C tasks
+## Phase 6 status
 
-- 6B: start, submit, return, close transitions; completion fields; approval.
-- 6C: baseline advancement, spare usage, concurrency stress, final verification.
+All Phase 6 milestones (6A, 6B and 6C) are complete and verified. Phase 7 (spare parts) is
+not started.
+
+## Phase 6C implementation and verification
+
+Phase 6C implements Chief Engineer approval and closure of submitted work orders, atomic
+maintenance baseline advancement, baseline history, due-status recalculation and idempotency.
+
+- `WorkOrderClosureService::close()` performs the transition inside one transaction with
+  `lockForUpdate` on the work order and plan, re-validating state and completion data.
+- Baselines advance only from actual completion date/hours (calendar, hours and dual plans);
+  non-applicable fields are preserved.
+- `PlanBaselineHistory` records previous and new baselines; `WorkOrderEvent` and `AuditEvent`
+  records are written atomically.
+- `WorkOrderPolicy::close` restricts closure to the Chief Engineer.
+- UI: `Approve and close` action with confirmation on submitted work orders; read-only closed
+  work orders; baseline history on the plan detail page.
+- Due status is recalculated through the existing `DueStatusCalculator`.
+
+### Verification
+
+- `WorkOrderClosureTest`: **15 passed / 101 assertions**.
+- Full regression suite: **166 passed / 690 assertions** (baseline 151 / 589 preserved).
+- Laravel Pint: `vendor/bin/pint --test --format agent` → **passed**.
+- Actual concurrency (cmms_test, two PHP processes): one closed, one rejected; exactly one
+  baseline history, closed event and closed audit.
+- HTTP and Playwright verification against `http://localhost:8081` passed for all roles.
+- Operational domain fingerprints unchanged for both development and deployment databases.
+
+Phase 6 is complete. Phase 7 (spare parts) is not started.

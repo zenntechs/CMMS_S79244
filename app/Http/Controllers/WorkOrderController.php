@@ -9,8 +9,10 @@ use App\Http\Requests\SubmitWorkOrderRequest;
 use App\Models\MaintenancePlan;
 use App\Models\User;
 use App\Models\WorkOrder;
+use App\Services\WorkOrderClosureService;
 use App\Services\WorkOrderLifecycleService;
 use App\Services\WorkOrderService;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -136,5 +138,22 @@ class WorkOrderController extends Controller
         return redirect()
             ->route('work-orders.show', $workOrder)
             ->with('status', 'Work returned to the assigned technician.');
+    }
+
+    public function close(WorkOrder $workOrder, WorkOrderClosureService $service): RedirectResponse
+    {
+        $this->authorize('close', $workOrder);
+
+        try {
+            $service->close($workOrder->id, request()->user());
+        } catch (ValidationException $exception) {
+            return redirect()->back()->withErrors($exception->errors());
+        } catch (AuthorizationException $exception) {
+            return redirect()->back()->withErrors(['work_order' => $exception->getMessage()]);
+        }
+
+        return redirect()
+            ->route('work-orders.show', $workOrder)
+            ->with('status', 'Work order closed and maintenance baseline advanced.');
     }
 }

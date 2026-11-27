@@ -218,3 +218,13 @@ Verified after the change: both files parse as valid JSON, `opencode mcp list` r
 | ADR-030 | Lifecycle transitions are implemented in a reusable `WorkOrderLifecycleService` using database transactions and `lockForUpdate`, re-validating state after the lock | Accepted | One event and one audit record per transition, written atomically with the state change. |
 | ADR-031 | Completion information is validated per plan trigger (calendar, running hours, dual); actual completion date/hours, notes and optional evidence only; no baseline or meter-reading changes | Accepted | UTC storage with `Asia/Kuala_Lumpur` display; no approval timestamp, current meter value or zero is substituted for missing data. |
 | ADR-032 | Chief Engineer return requires a reason of at least 5 characters and preserves the earlier submission in the `returned` event snapshot | Accepted | Completion data is retained on return so the technician can correct and resubmit. |
+
+---
+
+## 11. Phase 6C closure decisions (27 November 2026)
+
+| # | Decision | Status | Note |
+|---|---|---|---|
+| ADR-033 | Submitted work orders are closed only by the Chief Engineer in one transaction that locks the work order and plan rows | Accepted | Re-validates state and completion data after acquiring the locks; rolls back entirely on failure. |
+| ADR-034 | Maintenance baselines advance only from actual completion date and hours, and history records the previous and new values | Accepted | Calendar, hours and dual plans update only their applicable fields; non-applicable fields are preserved. |
+| ADR-035 | Closure is idempotent: a repeated request leaves state, baselines, history, events and audits unchanged | Accepted | The state guard rejects a second closure with a validation error. |

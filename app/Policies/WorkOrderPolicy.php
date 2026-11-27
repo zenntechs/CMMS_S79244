@@ -45,6 +45,11 @@ class WorkOrderPolicy
         return $user->isChiefEngineer();
     }
 
+    public function close(User $user, WorkOrder $workOrder): bool
+    {
+        return $user->isChiefEngineer();
+    }
+
     private function mayPerformWork(User $user, WorkOrder $workOrder): bool
     {
         if ($user->isChiefEngineer()) {

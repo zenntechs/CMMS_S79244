@@ -44,6 +44,9 @@
                     @if ($workOrder->closed_at)
                         <div class="flex justify-between"><dt class="text-slate-500">Closed at</dt><dd>{{ $workOrder->closed_at->format('Y-m-d H:i') }}</dd></div>
                     @endif
+                    @if ($workOrder->approvedBy)
+                        <div class="flex justify-between"><dt class="text-slate-500">Approved by</dt><dd>{{ $workOrder->approvedBy->name }}</dd></div>
+                    @endif
                 </dl>
             </div>
         </div>
@@ -122,6 +125,16 @@
                         </div>
                         <button type="submit" class="rounded-md border border-rose-300 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-800 hover:bg-rose-100">Return to technician</button>
                     </form>
+
+                    @can('close', $workOrder)
+                        <div class="mt-4 border-t border-slate-200 pt-4">
+                            <p class="mb-3 text-sm text-slate-600">Approving closes the work order and advances the maintenance plan baseline using the actual completion date and hours recorded above. This cannot be undone.</p>
+                            <form method="POST" action="{{ route('work-orders.close', $workOrder) }}" onsubmit="return confirm('Approve and close this work order and advance the maintenance baseline?');">
+                                @csrf
+                                <button type="submit" class="rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">Approve and close</button>
+                            </form>
+                        </div>
+                    @endcan
                 @else
                     <p class="text-sm text-slate-600">This work order has been submitted and is awaiting Chief Engineer review. No action is required from you.</p>
                 @endcan
