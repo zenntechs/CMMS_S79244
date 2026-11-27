@@ -4,8 +4,10 @@
             "command": "docker",
             "args": [
                 "compose",
-                "--project-directory",
-                "${CLAUDE_PROJECT_DIR:-.}",
+                "-p",
+                "cmms_s79244-dev",
+                "-f",
+                "/home/zensworth/laravel/dev-CMMS_S79244/docker-compose.yaml",
                 "exec",
                 "-T",
                 "app",

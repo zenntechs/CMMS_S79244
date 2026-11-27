@@ -8,6 +8,7 @@ use App\Http\Controllers\MeterReadingController;
 use App\Http\Controllers\PlanActivationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VesselController;
+use App\Http\Controllers\WorkOrderController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
@@ -55,6 +56,15 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     });
 
     Route::get('/plans/{plan}', [MaintenancePlanController::class, 'show'])->name('plans.show');
+
+    Route::get('/work-orders', [WorkOrderController::class, 'index'])->name('work-orders.index');
+
+    Route::middleware('role:chief_engineer')->group(function (): void {
+        Route::get('/work-orders/create', [WorkOrderController::class, 'create'])->name('work-orders.create');
+        Route::post('/work-orders', [WorkOrderController::class, 'store'])->name('work-orders.store');
+    });
+
+    Route::get('/work-orders/{workOrder}', [WorkOrderController::class, 'show'])->name('work-orders.show');
 
     Route::get('/admin/users', [UserController::class, 'index'])
         ->middleware('role:chief_engineer')

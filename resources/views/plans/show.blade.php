@@ -65,7 +65,7 @@
                 <div class="border-b border-slate-200 px-4 py-3"><h2 class="text-sm font-semibold text-slate-900">Work orders</h2></div>
                 <ul class="divide-y divide-slate-100">
                     @foreach ($plan->workOrders as $wo)
-                        <li class="px-4 py-3 text-sm text-slate-700">{{ $wo->reference }} — {{ $wo->state->label() }}</li>
+                        <li class="px-4 py-3 text-sm text-slate-700"><a href="{{ route('work-orders.show', $wo) }}" class="hover:underline">{{ $wo->reference }}</a> — {{ $wo->state->label() }}</li>
                     @endforeach
                 </ul>
             </div>

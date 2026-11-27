@@ -81,5 +81,12 @@
                 </ul>
             </div>
         @endif
+
+        <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div class="border-b border-slate-200 px-4 py-3"><h2 class="text-sm font-semibold text-slate-900">Work orders</h2></div>
+            <div class="px-4 py-3 text-sm">
+                <a href="{{ route('work-orders.index', ['asset_id' => $asset->id]) }}" class="font-medium text-slate-900 hover:underline">View work orders for this asset</a>
+            </div>
+        </div>
     </div>
 @endsection

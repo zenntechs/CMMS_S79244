@@ -197,3 +197,14 @@ Verified after the change: both files parse as valid JSON, `opencode mcp list` r
 | ADR-023 | Test factories use non-overlapping code prefixes (`AST-####`, `PLN-####`, `TST-SP-####`, `TST-WO-####`) | Accepted | Root cause of intermittent `UniqueConstraintViolationException`: random `A##`/`P##` values collided with seeded `A01…`/`P01…` codes |
 | ADR-024 | The 16 legacy seed meter-reading timestamps are corrected by `cmms:correct-legacy-meter-timestamps`, which disables `meter_readings_no_decrease` only inside its transaction and always re-enables it; the command is idempotent and refuses unexpected row states | Accepted | Trigger comparison uses `max(reading_hours)` across all other rows, so updating an earlier row's timestamp would otherwise fail even though hours are unchanged. Backup `/tmp/opencode/p5backup/cmms-pre-phase5-fix.dump` (outside repository) precedes the change. |
 | ADR-025 | The audit payload and the value returned by `MeterReadingService::record()` use the normalised UTC instant (`$at->toIso8601String()`) and a refreshed model | Accepted | Eloquent stores the naive UTC wall-clock string on insert, which the `datetime` cast would otherwise re-interpret in the application timezone; the service now refreshes the model before returning. |
+| ADR-026 | Phase 6A work orders are created only for active plans by Chief Engineers; the plan and asset must match and the assignee must be an active technician | Accepted | Follows the approved plan/activity rules; duplicate active work orders are rejected by the partial unique index `one_active_work_order_per_plan` and surfaced as a validation error. |
+| ADR-027 | Technician visibility is limited to work orders assigned to them; Chief Engineers and Viewers may view all work orders | Accepted | Implements the approved RBAC matrix for 6A; start/submit/close remain unimplemented. |
+
+---
+
+## 9. Phase 6A final verification decisions (27 November 2026)
+
+| # | Decision | Status | Note |
+|---|---|---|---|
+| ADR-028 | The work-order create route is registered before the `{workOrder}` detail route; reference-allocation collisions are retried up to three times and plan conflicts are mapped from `one_active_work_order_per_plan` to a validation error | Accepted | Fixes the create-page 404 and the misleading conflict message found during final verification. The partial unique index remains the concurrency backstop. |
+| ADR-029 | The authoritative development source is `/home/zensworth/laravel/dev/CMMS_S79244`, with Compose/tooling in `/home/zensworth/laravel/dev-CMMS_S79244`; deployment remains `/home/zensworth/laravel/CMMS_S79244` | Accepted | Records the corrected Phase 5A isolation layout. Development uses project `cmms_s79244-dev` on port 8081; deployment uses `cmms_s79244` on port 8080. |
