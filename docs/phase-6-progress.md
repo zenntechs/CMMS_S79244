@@ -4,7 +4,7 @@
 **Student ID:** S79244
 **Phase:** 6 — Work orders
 **Phase 5 checkpoint:** `639af0647b3430c3c606f6941f37d3cbcba85600`
-**Status:** 6C COMPLETE — atomic closure, baseline advancement and Phase 6 complete
+**Status:** Phase 6 COMPLETE; Phase 7A IN PROGRESS — spare-parts registry and inventory visibility
 
 ## Milestones
 

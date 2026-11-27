@@ -228,3 +228,13 @@ Verified after the change: both files parse as valid JSON, `opencode mcp list` r
 | ADR-033 | Submitted work orders are closed only by the Chief Engineer in one transaction that locks the work order and plan rows | Accepted | Re-validates state and completion data after acquiring the locks; rolls back entirely on failure. |
 | ADR-034 | Maintenance baselines advance only from actual completion date and hours, and history records the previous and new values | Accepted | Calendar, hours and dual plans update only their applicable fields; non-applicable fields are preserved. |
 | ADR-035 | Closure is idempotent: a repeated request leaves state, baselines, history, events and audits unchanged | Accepted | The state guard rejects a second closure with a validation error. |
+
+---
+
+## 12. Phase 7A spare-parts registry decisions (27 November 2026)
+
+| # | Decision | Status | Note |
+|---|---|---|---|
+| ADR-036 | Spare-item master data is managed by the Chief Engineer only; stock balances are never edited directly | Accepted | New items start at zero stock; all stock changes are reserved for spare movements. |
+| ADR-037 | Low-stock status uses `quantity_on_hand < reorder_level` | Accepted | Equality with the reorder level is reported as OK. |
+| ADR-038 | All authenticated active users may view spare inventory and movement history; only the Chief Engineer may create or edit master data | Accepted | Hiding controls is not authorization; policies and middleware enforce access. |

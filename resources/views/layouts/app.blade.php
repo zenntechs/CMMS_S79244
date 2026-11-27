@@ -23,6 +23,7 @@
                     <a href="{{ route('assets.index') }}" @class(['rounded-md px-3 py-2 font-medium', 'bg-slate-900 text-white' => request()->routeIs('assets.*'), 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' => ! request()->routeIs('assets.*')])>Assets</a>
                     <a href="{{ route('plans.index') }}" @class(['rounded-md px-3 py-2 font-medium', 'bg-slate-900 text-white' => request()->routeIs('plans.*'), 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' => ! request()->routeIs('plans.*')])>Plans</a>
                     <a href="{{ route('work-orders.index') }}" @class(['rounded-md px-3 py-2 font-medium', 'bg-slate-900 text-white' => request()->routeIs('work-orders.*'), 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' => ! request()->routeIs('work-orders.*')])>Work orders</a>
+                    <a href="{{ route('spares.index') }}" @class(['rounded-md px-3 py-2 font-medium', 'bg-slate-900 text-white' => request()->routeIs('spares.*'), 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' => ! request()->routeIs('spares.*')])>Spares</a>
 
                     @if (auth()->user()?->isChiefEngineer())
                         <a

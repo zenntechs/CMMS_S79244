@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MaintenancePlanController;
 use App\Http\Controllers\MeterReadingController;
 use App\Http\Controllers\PlanActivationController;
+use App\Http\Controllers\SpareItemController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VesselController;
 use App\Http\Controllers\WorkOrderController;
@@ -68,6 +69,17 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::post('/work-orders/{workOrder}/submit', [WorkOrderController::class, 'submit'])->name('work-orders.submit');
     Route::post('/work-orders/{workOrder}/return', [WorkOrderController::class, 'returnToTechnician'])->name('work-orders.return');
     Route::post('/work-orders/{workOrder}/close', [WorkOrderController::class, 'close'])->name('work-orders.close');
+
+    Route::get('/spares', [SpareItemController::class, 'index'])->name('spares.index');
+
+    Route::middleware('role:chief_engineer')->group(function (): void {
+        Route::get('/spares/create', [SpareItemController::class, 'create'])->name('spares.create');
+        Route::post('/spares', [SpareItemController::class, 'store'])->name('spares.store');
+        Route::get('/spares/{spareItem}/edit', [SpareItemController::class, 'edit'])->name('spares.edit');
+        Route::put('/spares/{spareItem}', [SpareItemController::class, 'update'])->name('spares.update');
+    });
+
+    Route::get('/spares/{spareItem}', [SpareItemController::class, 'show'])->name('spares.show');
 
     Route::get('/work-orders/{workOrder}', [WorkOrderController::class, 'show'])->name('work-orders.show');
 
