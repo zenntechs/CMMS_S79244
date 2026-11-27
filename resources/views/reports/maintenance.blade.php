@@ -44,6 +44,7 @@
             <input type="date" name="due_to" value="{{ $filters['due_to'] ?? '' }}" class="rounded-md border border-slate-300 px-3 py-2 text-sm">
             <button type="submit" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Filter</button>
             <a href="{{ route('reports.maintenance') }}" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Reset</a>
+            <a href="{{ route('reports.maintenance.export', request()->query()) }}" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">Export CSV</a>
         </form>
 
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">

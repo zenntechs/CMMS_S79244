@@ -93,6 +93,10 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::get('/reports/work-orders', [ReportController::class, 'workOrders'])->name('reports.work-orders');
     Route::get('/reports/spares', [ReportController::class, 'spares'])->name('reports.spares');
     Route::get('/reports/movements', [ReportController::class, 'movements'])->name('reports.movements');
+    Route::get('/reports/maintenance/export', [ReportController::class, 'exportMaintenance'])->name('reports.maintenance.export');
+    Route::get('/reports/work-orders/export', [ReportController::class, 'exportWorkOrders'])->name('reports.work-orders.export');
+    Route::get('/reports/spares/export', [ReportController::class, 'exportSpares'])->name('reports.spares.export');
+    Route::get('/reports/movements/export', [ReportController::class, 'exportMovements'])->name('reports.movements.export');
 
     Route::get('/admin/users', [UserController::class, 'index'])
         ->middleware('role:chief_engineer')

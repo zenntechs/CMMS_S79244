@@ -278,3 +278,13 @@ Verified after the change: both files parse as valid JSON, `opencode mcp list` r
 | ADR-048 | Reports use GET query parameters and server-side validation | Accepted | Filters are preserved across pagination and rejected safely when invalid. |
 | ADR-049 | Technician report visibility is scoped to assigned work orders and related movements | Accepted | Filters cannot expose records outside the Technician's authorization. |
 | ADR-050 | The dashboard no longer sums spare-item quantities across incompatible units | Accepted | It displays the count of active spare-item types instead. |
+
+---
+
+## 17. Phase 8C CSV export decisions (27 November 2026)
+
+| # | Decision | Status | Note |
+|---|---|---|---|
+| ADR-051 | CSV exports reuse the existing report query methods and authorization scopes | Accepted | Avoids a second reporting implementation. |
+| ADR-052 | Formula injection is neutralised by prefixing dangerous text with an apostrophe | Accepted | Trusted numeric quantities, including negative stock movements, remain numeric. |
+| ADR-053 | CSV files include a UTF-8 BOM and use streamed output | Accepted | Improves Excel compatibility and avoids loading all records into memory. |
