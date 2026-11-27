@@ -268,3 +268,13 @@ Verified after the change: both files parse as valid JSON, `opencode mcp list` r
 | ADR-045 | Dashboard due status is calculated only through the existing DueStatusCalculator | Accepted | No second scheduling implementation was introduced. |
 | ADR-046 | Technician work-order statistics are scoped to assigned work orders | Accepted | Chief Engineer and Viewer see aggregate totals for all work orders. |
 | ADR-047 | Dashboard inventory low-stock status uses quantity_on_hand < reorder_level | Accepted | Consistent with Phase 7A and 7B. |
+
+---
+
+## 16. Phase 8B reporting decisions (27 November 2026)
+
+| # | Decision | Status | Note |
+|---|---|---|---|
+| ADR-048 | Reports use GET query parameters and server-side validation | Accepted | Filters are preserved across pagination and rejected safely when invalid. |
+| ADR-049 | Technician report visibility is scoped to assigned work orders and related movements | Accepted | Filters cannot expose records outside the Technician's authorization. |
+| ADR-050 | The dashboard no longer sums spare-item quantities across incompatible units | Accepted | It displays the count of active spare-item types instead. |

@@ -36,7 +36,7 @@
             <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                 <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Spare items</p>
                 <p class="mt-2 text-3xl font-semibold text-slate-900">{{ $spareItemCount }}</p>
-                <p class="mt-1 text-sm text-slate-600">{{ $lowStockCount }} below reorder · {{ $totalStockQuantity }} total units</p>
+                <p class="mt-1 text-sm text-slate-600">{{ $lowStockCount }} below reorder · {{ $spareItemCount }} active item types</p>
             </div>
         </section>
 

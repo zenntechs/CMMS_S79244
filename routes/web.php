@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MaintenancePlanController;
 use App\Http\Controllers\MeterReadingController;
 use App\Http\Controllers\PlanActivationController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SpareItemController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VesselController;
@@ -86,6 +87,12 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::get('/spares/{spareItem}', [SpareItemController::class, 'show'])->name('spares.show');
 
     Route::get('/work-orders/{workOrder}', [WorkOrderController::class, 'show'])->name('work-orders.show');
+
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/maintenance', [ReportController::class, 'maintenance'])->name('reports.maintenance');
+    Route::get('/reports/work-orders', [ReportController::class, 'workOrders'])->name('reports.work-orders');
+    Route::get('/reports/spares', [ReportController::class, 'spares'])->name('reports.spares');
+    Route::get('/reports/movements', [ReportController::class, 'movements'])->name('reports.movements');
 
     Route::get('/admin/users', [UserController::class, 'index'])
         ->middleware('role:chief_engineer')
