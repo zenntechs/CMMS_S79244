@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
+use App\Http\Requests\ReturnWorkOrderRequest;
 use App\Http\Requests\StoreWorkOrderRequest;
+use App\Http\Requests\SubmitWorkOrderRequest;
 use App\Models\MaintenancePlan;
 use App\Models\User;
 use App\Models\WorkOrder;
+use App\Services\WorkOrderLifecycleService;
 use App\Services\WorkOrderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\ValidationException;
@@ -82,5 +85,56 @@ class WorkOrderController extends Controller
         return redirect()
             ->route('work-orders.show', $workOrder)
             ->with('status', 'Work order created and assigned.');
+    }
+
+    public function start(WorkOrder $workOrder, WorkOrderLifecycleService $service): RedirectResponse
+    {
+        $this->authorize('start', $workOrder);
+
+        try {
+            $service->start($workOrder->id, request()->user());
+        } catch (ValidationException $exception) {
+            return redirect()->back()->withErrors($exception->errors());
+        }
+
+        return redirect()
+            ->route('work-orders.show', $workOrder)
+            ->with('status', 'Work started. Record the completion details when the job is finished.');
+    }
+
+    public function submit(
+        SubmitWorkOrderRequest $request,
+        WorkOrder $workOrder,
+        WorkOrderLifecycleService $service,
+    ): RedirectResponse {
+        $this->authorize('submit', $workOrder);
+
+        try {
+            $service->submit($workOrder->id, $request->user(), $request->validated());
+        } catch (ValidationException $exception) {
+            return redirect()->back()->withInput()->withErrors($exception->errors());
+        }
+
+        return redirect()
+            ->route('work-orders.show', $workOrder)
+            ->with('status', 'Work submitted for Chief Engineer approval.');
+    }
+
+    public function returnToTechnician(
+        ReturnWorkOrderRequest $request,
+        WorkOrder $workOrder,
+        WorkOrderLifecycleService $service,
+    ): RedirectResponse {
+        $this->authorize('returnToTechnician', $workOrder);
+
+        try {
+            $service->returnToTechnician($workOrder->id, $request->user(), $request->validated()['reason']);
+        } catch (ValidationException $exception) {
+            return redirect()->back()->withInput()->withErrors($exception->errors());
+        }
+
+        return redirect()
+            ->route('work-orders.show', $workOrder)
+            ->with('status', 'Work returned to the assigned technician.');
     }
 }

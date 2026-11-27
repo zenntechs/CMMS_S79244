@@ -208,3 +208,13 @@ Verified after the change: both files parse as valid JSON, `opencode mcp list` r
 |---|---|---|---|
 | ADR-028 | The work-order create route is registered before the `{workOrder}` detail route; reference-allocation collisions are retried up to three times and plan conflicts are mapped from `one_active_work_order_per_plan` to a validation error | Accepted | Fixes the create-page 404 and the misleading conflict message found during final verification. The partial unique index remains the concurrency backstop. |
 | ADR-029 | The authoritative development source is `/home/zensworth/laravel/dev/CMMS_S79244`, with Compose/tooling in `/home/zensworth/laravel/dev-CMMS_S79244`; deployment remains `/home/zensworth/laravel/CMMS_S79244` | Accepted | Records the corrected Phase 5A isolation layout. Development uses project `cmms_s79244-dev` on port 8081; deployment uses `cmms_s79244` on port 8080. |
+
+---
+
+## 10. Phase 6B lifecycle decisions (27 November 2026)
+
+| # | Decision | Status | Note |
+|---|---|---|---|
+| ADR-030 | Lifecycle transitions are implemented in a reusable `WorkOrderLifecycleService` using database transactions and `lockForUpdate`, re-validating state after the lock | Accepted | One event and one audit record per transition, written atomically with the state change. |
+| ADR-031 | Completion information is validated per plan trigger (calendar, running hours, dual); actual completion date/hours, notes and optional evidence only; no baseline or meter-reading changes | Accepted | UTC storage with `Asia/Kuala_Lumpur` display; no approval timestamp, current meter value or zero is substituted for missing data. |
+| ADR-032 | Chief Engineer return requires a reason of at least 5 characters and preserves the earlier submission in the `returned` event snapshot | Accepted | Completion data is retained on return so the technician can correct and resubmit. |

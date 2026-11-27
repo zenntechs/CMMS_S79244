@@ -9,6 +9,16 @@
             <span class="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">{{ $workOrder->state->label() }}</span>
         </div>
 
+        @if ($errors->any())
+            <div class="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">
+                <ul class="list-inside list-disc space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <div class="grid gap-4 sm:grid-cols-2">
             <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                 <h2 class="mb-2 text-sm font-semibold text-slate-700">Plan &amp; asset</h2>
@@ -34,11 +44,90 @@
                     @if ($workOrder->closed_at)
                         <div class="flex justify-between"><dt class="text-slate-500">Closed at</dt><dd>{{ $workOrder->closed_at->format('Y-m-d H:i') }}</dd></div>
                     @endif
+                </dl>
+            </div>
+        </div>
+
+        @if ($workOrder->actual_completion_date || $workOrder->actual_completion_hours !== null || $workOrder->completion_notes)
+            <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <h2 class="mb-2 text-sm font-semibold text-slate-700">Completion information</h2>
+                <dl class="space-y-1 text-sm">
+                    @if ($workOrder->actual_completion_date)
+                        <div class="flex justify-between"><dt class="text-slate-500">Actual completion date</dt><dd>{{ $workOrder->actual_completion_date->format('Y-m-d') }}</dd></div>
+                    @endif
                     @if ($workOrder->actual_completion_hours !== null)
-                        <div class="flex justify-between"><dt class="text-slate-500">Actual hours</dt><dd>{{ number_format((float) $workOrder->actual_completion_hours, 2) }}</dd></div>
+                        <div class="flex justify-between"><dt class="text-slate-500">Actual completion hours</dt><dd>{{ number_format((float) $workOrder->actual_completion_hours, 2) }}</dd></div>
+                    @endif
+                    @if ($workOrder->completion_notes)
+                        <div class="flex justify-between gap-6"><dt class="text-slate-500">Work performed</dt><dd class="text-right">{{ $workOrder->completion_notes }}</dd></div>
+                    @endif
+                    @if ($workOrder->evidence_ref)
+                        <div class="flex justify-between"><dt class="text-slate-500">Evidence reference</dt><dd>{{ $workOrder->evidence_ref }}</dd></div>
                     @endif
                 </dl>
             </div>
+        @endif
+
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <h2 class="mb-3 text-sm font-semibold text-slate-700">Next action</h2>
+
+            @if ($workOrder->state->value === 'open')
+                @can('start', $workOrder)
+                    <p class="mb-3 text-sm text-slate-600">Start the job when work begins. Opening the work order does not record any maintenance completion.</p>
+                    <form method="POST" action="{{ route('work-orders.start', $workOrder) }}">
+                        @csrf
+                        <button type="submit" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">Start work</button>
+                    </form>
+                @else
+                    <p class="text-sm text-slate-600">This work order is open and has not been started. Only the assigned technician or the Chief Engineer can start it.</p>
+                @endcan
+            @elseif ($workOrder->state->value === 'in_progress')
+                @can('submit', $workOrder)
+                    <p class="mb-4 text-sm text-slate-600">Record the actual completion details. Submitting does not close the work order or advance the maintenance baseline; the Chief Engineer reviews it first.</p>
+                    <form method="POST" action="{{ route('work-orders.submit', $workOrder) }}" class="grid gap-4 sm:grid-cols-2">
+                        @csrf
+                        <div>
+                            <label for="actual_completion_date" class="block text-sm font-medium text-slate-700">Actual completion date <span class="text-rose-600">*</span></label>
+                            <input type="date" name="actual_completion_date" id="actual_completion_date" value="{{ old('actual_completion_date', $workOrder->actual_completion_date?->format('Y-m-d')) }}" required class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+                        </div>
+                        @if ($workOrder->plan->usesHours())
+                            <div>
+                                <label for="actual_completion_hours" class="block text-sm font-medium text-slate-700">Actual completion running hours <span class="text-rose-600">*</span></label>
+                                <input type="number" step="0.01" min="0" name="actual_completion_hours" id="actual_completion_hours" value="{{ old('actual_completion_hours', $workOrder->actual_completion_hours !== null ? number_format((float) $workOrder->actual_completion_hours, 2, '.', '') : '') }}" required class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+                            </div>
+                        @endif
+                        <div class="sm:col-span-2">
+                            <label for="completion_notes" class="block text-sm font-medium text-slate-700">Work performed / completion notes <span class="text-rose-600">*</span></label>
+                            <textarea name="completion_notes" id="completion_notes" rows="3" required class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm">{{ old('completion_notes', $workOrder->completion_notes) }}</textarea>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label for="evidence_ref" class="block text-sm font-medium text-slate-700">Evidence reference (optional)</label>
+                            <input type="text" name="evidence_ref" id="evidence_ref" value="{{ old('evidence_ref', $workOrder->evidence_ref) }}" class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <button type="submit" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">Submit for approval</button>
+                        </div>
+                    </form>
+                @else
+                    <p class="text-sm text-slate-600">This work order is in progress. Only the assigned technician or the Chief Engineer can submit it for approval.</p>
+                @endcan
+            @elseif ($workOrder->state->value === 'submitted')
+                @can('returnToTechnician', $workOrder)
+                    <p class="mb-4 text-sm text-slate-600">Review the completion information, then approve the work in Phase 6C or return it to the technician with a reason. Returning preserves this submission in the event history.</p>
+                    <form method="POST" action="{{ route('work-orders.return', $workOrder) }}" class="space-y-3">
+                        @csrf
+                        <div>
+                            <label for="reason" class="block text-sm font-medium text-slate-700">Return reason <span class="text-rose-600">*</span></label>
+                            <textarea name="reason" id="reason" rows="3" required minlength="5" class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm">{{ old('reason') }}</textarea>
+                        </div>
+                        <button type="submit" class="rounded-md border border-rose-300 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-800 hover:bg-rose-100">Return to technician</button>
+                    </form>
+                @else
+                    <p class="text-sm text-slate-600">This work order has been submitted and is awaiting Chief Engineer review. No action is required from you.</p>
+                @endcan
+            @else
+                <p class="text-sm text-slate-600">This work order is closed and cannot be modified.</p>
+            @endif
         </div>
 
         <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">

@@ -4,13 +4,31 @@
 **Student ID:** S79244
 **Phase:** 6 — Work orders
 **Phase 5 checkpoint:** `639af0647b3430c3c606f6941f37d3cbcba85600`
-**Status:** 6A COMPLETE — final verification passed, Git checkpoint authorised
+**Status:** 6B COMPLETE — lifecycle transitions, completion submission and Chief Engineer return verified
 
 ## Milestones
 
 - 6A — Work-order registry, creation and assignment (complete).
-- 6B — Lifecycle transitions, completion and approval (not started).
-- 6C — Atomic baseline advancement, concurrency and final verification (not started).
+- 6B — Lifecycle transitions, completion submission and return (complete).
+- 6C — Closure, approval, atomic baseline advancement and final verification (not started).
+
+## Phase 6B implementation and verification
+
+Authorised transitions only: `Open → In Progress`, `In Progress → Submitted`, and
+`Submitted → In Progress` (Chief Engineer return with mandatory reason). Closure and baseline
+advancement remain reserved for Phase 6C.
+
+- `WorkOrderLifecycleService` uses database transactions and `lockForUpdate`, re-validating the
+  current state after acquiring the lock.
+- One event and one audit record per transition, written atomically with the state change.
+- Completion fields validated per plan trigger (calendar, running hours, dual); actual completion
+  date/hours, notes and optional evidence only; no baseline or meter-reading changes.
+- Policy methods `start`, `submit`, `returnToTechnician`; UI actions shown only when role and state
+  permit.
+- Tests: 26 lifecycle tests / 130 assertions added; full regression 151 tests / 589 assertions.
+- Actual concurrency verified with two independent PHP processes and a row-lock demonstration
+  against `cmms_test`.
+- HTTP and Playwright verification against `http://localhost:8081` passed for all three roles.
 
 ## Authoritative environment
 

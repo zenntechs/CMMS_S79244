@@ -29,4 +29,28 @@ class WorkOrderPolicy
     {
         return $user->isChiefEngineer();
     }
+
+    public function start(User $user, WorkOrder $workOrder): bool
+    {
+        return $this->mayPerformWork($user, $workOrder);
+    }
+
+    public function submit(User $user, WorkOrder $workOrder): bool
+    {
+        return $this->mayPerformWork($user, $workOrder);
+    }
+
+    public function returnToTechnician(User $user, WorkOrder $workOrder): bool
+    {
+        return $user->isChiefEngineer();
+    }
+
+    private function mayPerformWork(User $user, WorkOrder $workOrder): bool
+    {
+        if ($user->isChiefEngineer()) {
+            return true;
+        }
+
+        return $user->isTechnician() && $workOrder->assigned_to === $user->id;
+    }
 }
