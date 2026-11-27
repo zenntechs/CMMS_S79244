@@ -288,3 +288,13 @@ Verified after the change: both files parse as valid JSON, `opencode mcp list` r
 | ADR-051 | CSV exports reuse the existing report query methods and authorization scopes | Accepted | Avoids a second reporting implementation. |
 | ADR-052 | Formula injection is neutralised by prefixing dangerous text with an apostrophe | Accepted | Trusted numeric quantities, including negative stock movements, remain numeric. |
 | ADR-053 | CSV files include a UTF-8 BOM and use streamed output | Accepted | Improves Excel compatibility and avoids loading all records into memory. |
+
+---
+
+## 18. Phase 9.1 audit trail decisions (27 November 2026)
+
+| # | Decision | Status | Note |
+|---|---|---|---|
+| ADR-054 | Audit-log access is granted to Chief Engineer and Viewer only | Accepted | Technicians remain unable to view the global audit log. |
+| ADR-055 | Audit payloads are sanitized and rendered with Blade escaping | Accepted | Sensitive keys are redacted and user-controlled text cannot execute. |
+| ADR-056 | Audit events are append-only at the database level | Accepted | PostgreSQL triggers prevent updates and deletes. |

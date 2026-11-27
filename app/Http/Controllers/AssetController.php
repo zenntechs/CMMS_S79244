@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreAssetRequest;
 use App\Http\Requests\UpdateAssetRequest;
 use App\Models\Asset;
+use App\Models\AuditEvent;
 use App\Models\Vessel;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class AssetController extends Controller
@@ -42,7 +44,23 @@ class AssetController extends Controller
     {
         $data = $request->validated();
         $data['has_hour_meter'] = $request->boolean('has_hour_meter');
-        Asset::create($data);
+
+        $asset = DB::transaction(function () use ($data, $request): Asset {
+            $asset = Asset::create($data);
+
+            AuditEvent::create([
+                'actor_id' => $request->user()->id,
+                'action' => 'asset.created',
+                'entity_type' => 'asset',
+                'entity_id' => $asset->id,
+                'before' => null,
+                'after' => $data,
+                'reason' => null,
+                'occurred_at' => now(),
+            ]);
+
+            return $asset;
+        });
 
         return redirect()->route('assets.index')->with('status', 'Asset created.');
     }
@@ -73,7 +91,22 @@ class AssetController extends Controller
     {
         $data = $request->validated();
         $data['has_hour_meter'] = $request->boolean('has_hour_meter');
-        $asset->update($data);
+
+        DB::transaction(function () use ($asset, $data, $request): void {
+            $before = $asset->getAttributes();
+            $asset->update($data);
+
+            AuditEvent::create([
+                'actor_id' => $request->user()->id,
+                'action' => 'asset.updated',
+                'entity_type' => 'asset',
+                'entity_id' => $asset->id,
+                'before' => $before,
+                'after' => $asset->getChanges() ?: $data,
+                'reason' => null,
+                'occurred_at' => now(),
+            ]);
+        });
 
         return redirect()->route('assets.show', $asset)->with('status', 'Asset updated.');
     }

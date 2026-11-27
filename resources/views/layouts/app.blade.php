@@ -25,6 +25,9 @@
                     <a href="{{ route('work-orders.index') }}" @class(['rounded-md px-3 py-2 font-medium', 'bg-slate-900 text-white' => request()->routeIs('work-orders.*'), 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' => ! request()->routeIs('work-orders.*')])>Work orders</a>
                     <a href="{{ route('spares.index') }}" @class(['rounded-md px-3 py-2 font-medium', 'bg-slate-900 text-white' => request()->routeIs('spares.*'), 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' => ! request()->routeIs('spares.*')])>Spares</a>
                     <a href="{{ route('reports.index') }}" @class(['rounded-md px-3 py-2 font-medium', 'bg-slate-900 text-white' => request()->routeIs('reports.*'), 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' => ! request()->routeIs('reports.*')])>Reports</a>
+                    @can('viewAny', App\Models\AuditEvent::class)
+                        <a href="{{ route('audit.index') }}" @class(['rounded-md px-3 py-2 font-medium', 'bg-slate-900 text-white' => request()->routeIs('audit.*'), 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' => ! request()->routeIs('audit.*')])>Audit</a>
+                    @endcan
 
                     @if (auth()->user()?->isChiefEngineer())
                         <a

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AssetController;
+use App\Http\Controllers\AuditController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MaintenancePlanController;
@@ -87,6 +88,9 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::get('/spares/{spareItem}', [SpareItemController::class, 'show'])->name('spares.show');
 
     Route::get('/work-orders/{workOrder}', [WorkOrderController::class, 'show'])->name('work-orders.show');
+
+    Route::get('/audit', [AuditController::class, 'index'])->name('audit.index');
+    Route::get('/audit/{auditEvent}', [AuditController::class, 'show'])->name('audit.show');
 
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/maintenance', [ReportController::class, 'maintenance'])->name('reports.maintenance');

@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreMaintenancePlanRequest;
 use App\Http\Requests\UpdateMaintenancePlanRequest;
 use App\Models\Asset;
+use App\Models\AuditEvent;
 use App\Models\MaintenancePlan;
 use App\Services\DueStatusCalculator;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class MaintenancePlanController extends Controller
@@ -45,7 +47,23 @@ class MaintenancePlanController extends Controller
     {
         $data = $request->validated();
         $data['is_active'] = false;
-        MaintenancePlan::create($data);
+
+        $plan = DB::transaction(function () use ($data, $request): MaintenancePlan {
+            $plan = MaintenancePlan::create($data);
+
+            AuditEvent::create([
+                'actor_id' => $request->user()->id,
+                'action' => 'maintenance_plan.created',
+                'entity_type' => 'maintenance_plan',
+                'entity_id' => $plan->id,
+                'before' => null,
+                'after' => $data,
+                'reason' => null,
+                'occurred_at' => now(),
+            ]);
+
+            return $plan;
+        });
 
         return redirect()->route('plans.index')->with('status', 'Maintenance plan created (inactive).');
     }
@@ -71,7 +89,23 @@ class MaintenancePlanController extends Controller
 
     public function update(UpdateMaintenancePlanRequest $request, MaintenancePlan $plan): RedirectResponse
     {
-        $plan->update($request->validated());
+        $data = $request->validated();
+
+        DB::transaction(function () use ($plan, $data, $request): void {
+            $before = $plan->getAttributes();
+            $plan->update($data);
+
+            AuditEvent::create([
+                'actor_id' => $request->user()->id,
+                'action' => 'maintenance_plan.updated',
+                'entity_type' => 'maintenance_plan',
+                'entity_id' => $plan->id,
+                'before' => $before,
+                'after' => $plan->getChanges() ?: $data,
+                'reason' => null,
+                'occurred_at' => now(),
+            ]);
+        });
 
         return redirect()->route('plans.show', $plan)->with('status', 'Maintenance plan updated.');
     }

@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditEvent;
 use App\Models\MaintenancePlan;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 
 class PlanActivationController extends Controller
 {
@@ -23,7 +25,20 @@ class PlanActivationController extends Controller
             return back()->withErrors(['activation' => 'Cannot activate: missing '.implode(' and ', $errors).'.']);
         }
 
-        $plan->update(['is_active' => true]);
+        DB::transaction(function () use ($plan, $request): void {
+            $plan->update(['is_active' => true]);
+
+            AuditEvent::create([
+                'actor_id' => $request->user()->id,
+                'action' => 'maintenance_plan.activated',
+                'entity_type' => 'maintenance_plan',
+                'entity_id' => $plan->id,
+                'before' => ['is_active' => false],
+                'after' => ['is_active' => true],
+                'reason' => null,
+                'occurred_at' => now(),
+            ]);
+        });
 
         return back()->with('status', 'Plan activated.');
     }
@@ -31,7 +46,20 @@ class PlanActivationController extends Controller
     public function destroy(MaintenancePlan $plan): RedirectResponse
     {
         $this->authorize('activate', $plan);
-        $plan->update(['is_active' => false]);
+        DB::transaction(function () use ($plan, $request): void {
+            $plan->update(['is_active' => false]);
+
+            AuditEvent::create([
+                'actor_id' => $request->user()->id,
+                'action' => 'maintenance_plan.deactivated',
+                'entity_type' => 'maintenance_plan',
+                'entity_id' => $plan->id,
+                'before' => ['is_active' => true],
+                'after' => ['is_active' => false],
+                'reason' => null,
+                'occurred_at' => now(),
+            ]);
+        });
 
         return back()->with('status', 'Plan deactivated.');
     }
