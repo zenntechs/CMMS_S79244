@@ -26,4 +26,14 @@ class SpareItemPolicy
     {
         return $user->isChiefEngineer();
     }
+
+    public function receive(User $user, SpareItem $spareItem): bool
+    {
+        return $user->isChiefEngineer();
+    }
+
+    public function adjust(User $user, SpareItem $spareItem): bool
+    {
+        return $user->isChiefEngineer();
+    }
 }

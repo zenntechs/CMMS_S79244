@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AdjustSpareRequest;
+use App\Http\Requests\ReceiptSpareRequest;
 use App\Http\Requests\StoreSpareItemRequest;
 use App\Http\Requests\UpdateSpareItemRequest;
 use App\Models\SpareItem;
+use App\Services\SpareMovementService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class SpareItemController extends Controller
@@ -84,5 +88,31 @@ class SpareItemController extends Controller
         ]);
 
         return redirect()->route('spares.show', $spareItem)->with('status', 'Spare item updated.');
+    }
+
+    public function receive(ReceiptSpareRequest $request, SpareItem $spareItem, SpareMovementService $service): RedirectResponse
+    {
+        $this->authorize('receive', $spareItem);
+
+        try {
+            $service->receipt($spareItem, $request->validated()['quantity'], $request->user(), $request->validated()['reason'] ?? null);
+        } catch (ValidationException $exception) {
+            return redirect()->back()->withInput()->withErrors($exception->errors());
+        }
+
+        return redirect()->route('spares.show', $spareItem)->with('status', 'Stock received.');
+    }
+
+    public function adjust(AdjustSpareRequest $request, SpareItem $spareItem, SpareMovementService $service): RedirectResponse
+    {
+        $this->authorize('adjust', $spareItem);
+
+        try {
+            $service->adjust($spareItem, $request->validated()['quantity_delta'], $request->user(), $request->validated()['reason']);
+        } catch (ValidationException $exception) {
+            return redirect()->back()->withInput()->withErrors($exception->errors());
+        }
+
+        return redirect()->route('spares.show', $spareItem)->with('status', 'Stock adjusted.');
     }
 }

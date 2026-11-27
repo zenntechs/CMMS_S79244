@@ -238,3 +238,13 @@ Verified after the change: both files parse as valid JSON, `opencode mcp list` r
 | ADR-036 | Spare-item master data is managed by the Chief Engineer only; stock balances are never edited directly | Accepted | New items start at zero stock; all stock changes are reserved for spare movements. |
 | ADR-037 | Low-stock status uses `quantity_on_hand < reorder_level` | Accepted | Equality with the reorder level is reported as OK. |
 | ADR-038 | All authenticated active users may view spare inventory and movement history; only the Chief Engineer may create or edit master data | Accepted | Hiding controls is not authorization; policies and middleware enforce access. |
+
+---
+
+## 13. Phase 7B stock movement decisions (27 November 2026)
+
+| # | Decision | Status | Note |
+|---|---|---|---|
+| ADR-039 | Stock changes use signed spare movements with row locking and one transaction | Accepted | Receipt, adjustment and issue update `quantity_on_hand`, insert the movement and write audit records atomically. |
+| ADR-040 | Stock can be issued only to active work orders by the Chief Engineer or the assigned Technician | Accepted | Closed work orders cannot receive spare issues. |
+| ADR-041 | Stock movements use exact decimal arithmetic with `bcadd` and `bcsub` | Accepted | No floating-point arithmetic is used for inventory quantities. |

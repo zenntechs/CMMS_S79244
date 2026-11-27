@@ -143,6 +143,84 @@
             @endif
         </div>
 
+        @if ($errors->any())
+            <div class="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">
+                <ul class="list-inside list-disc space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <h2 class="mb-3 text-sm font-semibold text-slate-700">Spare parts</h2>
+            @if ($workOrder->spareMovements->isEmpty())
+                <p class="text-sm text-slate-500">No spare parts issued to this work order.</p>
+            @else
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200 text-sm">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold text-slate-700">Occurred</th>
+                                <th class="px-4 py-3 text-left font-semibold text-slate-700">Item</th>
+                                <th class="px-4 py-3 text-left font-semibold text-slate-700">Type</th>
+                                <th class="px-4 py-3 text-right font-semibold text-slate-700">Quantity</th>
+                                <th class="px-4 py-3 text-right font-semibold text-slate-700">Balance after</th>
+                                <th class="px-4 py-3 text-left font-semibold text-slate-700">Actor</th>
+                                <th class="px-4 py-3 text-left font-semibold text-slate-700">Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach ($workOrder->spareMovements->sortByDesc('occurred_at') as $movement)
+                                <tr>
+                                    <td class="px-4 py-3 text-slate-600">{{ $movement->occurred_at->format('Y-m-d H:i') }}</td>
+                                    <td class="px-4 py-3 text-slate-700">{{ $movement->spareItem->code }}</td>
+                                    <td class="px-4 py-3 text-slate-700">{{ $movement->movement_type->value }}</td>
+                                    <td class="px-4 py-3 text-right text-slate-900">{{ number_format((float) $movement->quantity_delta, 2) }}</td>
+                                    <td class="px-4 py-3 text-right text-slate-900">{{ number_format((float) $movement->balance_after, 2) }}</td>
+                                    <td class="px-4 py-3 text-slate-600">{{ $movement->actor->name }}</td>
+                                    <td class="px-4 py-3 text-slate-600">{{ $movement->reason ?? '—' }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+
+            @can('issueSpare', $workOrder)
+                <form method="POST" action="{{ route('work-orders.spares.store', $workOrder) }}" class="mt-4 grid gap-3 border-t border-slate-200 pt-4 sm:grid-cols-4">
+                    @csrf
+                    <div class="sm:col-span-2">
+                        <label for="spare_item_id" class="block text-sm font-medium text-slate-700">Spare item</label>
+                        <select name="spare_item_id" id="spare_item_id" required class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+                            <option value="">Select item</option>
+                            @foreach ($spareItems as $spareItem)
+                                <option value="{{ $spareItem->id }}" @selected(old('spare_item_id') === $spareItem->id)>
+                                    {{ $spareItem->code }} — {{ $spareItem->description }} ({{ number_format((float) $spareItem->quantity_on_hand, 2) }} {{ $spareItem->unit }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label for="issue_quantity" class="block text-sm font-medium text-slate-700">Quantity</label>
+                        <input type="number" step="0.01" min="0.01" name="quantity" id="issue_quantity" value="{{ old('quantity') }}" required class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label for="issue_reason" class="block text-sm font-medium text-slate-700">Reason (optional)</label>
+                        <input type="text" name="reason" id="issue_reason" value="{{ old('reason') }}" class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+                    </div>
+                    <div class="sm:col-span-4">
+                        <button type="submit" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">Issue spare part</button>
+                    </div>
+                </form>
+            @elseif ($workOrder->state->isActive())
+                <p class="mt-3 text-sm text-slate-600">Only the assigned technician or the Chief Engineer can issue spare parts to this work order.</p>
+            @else
+                <p class="mt-3 text-sm text-slate-600">Spare parts cannot be issued to a closed work order.</p>
+            @endif
+        </div>
+
         <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <h2 class="mb-3 text-sm font-semibold text-slate-700">Event history</h2>
             @if ($workOrder->events->isEmpty())

@@ -7,6 +7,7 @@ use App\Http\Requests\ReturnWorkOrderRequest;
 use App\Http\Requests\StoreWorkOrderRequest;
 use App\Http\Requests\SubmitWorkOrderRequest;
 use App\Models\MaintenancePlan;
+use App\Models\SpareItem;
 use App\Models\User;
 use App\Models\WorkOrder;
 use App\Services\WorkOrderClosureService;
@@ -51,9 +52,11 @@ class WorkOrderController extends Controller
     {
         $this->authorize('view', $workOrder);
 
-        $workOrder->load(['plan.asset.latestMeterReading', 'assignee', 'createdBy', 'approvedBy', 'events.actor']);
+        $workOrder->load(['plan.asset.latestMeterReading', 'assignee', 'createdBy', 'approvedBy', 'events.actor', 'spareMovements.spareItem', 'spareMovements.actor']);
 
-        return view('work-orders.show', compact('workOrder'));
+        $spareItems = SpareItem::where('is_active', true)->orderBy('code')->get();
+
+        return view('work-orders.show', compact('workOrder', 'spareItems'));
     }
 
     public function create(): View

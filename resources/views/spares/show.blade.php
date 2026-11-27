@@ -40,6 +40,48 @@
             </div>
         </div>
 
+        @if ($errors->any())
+            <div class="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+                <ul class="list-inside list-disc space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        @can('receive', $spareItem)
+            <div class="grid gap-4 sm:grid-cols-2">
+                <form method="POST" action="{{ route('spares.receipt', $spareItem) }}" class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+                    @csrf
+                    <h2 class="text-sm font-semibold text-slate-700">Receive stock</h2>
+                    <div>
+                        <label for="receipt_quantity" class="block text-sm font-medium text-slate-700">Quantity</label>
+                        <input type="number" step="0.01" min="0.01" name="quantity" id="receipt_quantity" value="{{ old('quantity') }}" required class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label for="receipt_reason" class="block text-sm font-medium text-slate-700">Reason (optional)</label>
+                        <input type="text" name="reason" id="receipt_reason" value="{{ old('reason') }}" class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+                    </div>
+                    <button type="submit" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">Receive stock</button>
+                </form>
+
+                <form method="POST" action="{{ route('spares.adjustment', $spareItem) }}" class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+                    @csrf
+                    <h2 class="text-sm font-semibold text-slate-700">Adjust stock</h2>
+                    <div>
+                        <label for="adjustment_quantity_delta" class="block text-sm font-medium text-slate-700">Quantity delta (+/-)</label>
+                        <input type="number" step="0.01" name="quantity_delta" id="adjustment_quantity_delta" value="{{ old('quantity_delta') }}" required class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label for="adjustment_reason" class="block text-sm font-medium text-slate-700">Reason</label>
+                        <input type="text" name="reason" id="adjustment_reason" value="{{ old('reason') }}" required class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+                    </div>
+                    <button type="submit" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Adjust stock</button>
+                </form>
+            </div>
+        @endcan
+
         <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <h2 class="mb-3 text-sm font-semibold text-slate-700">Movement history</h2>
             @if ($spareItem->movements->isEmpty())

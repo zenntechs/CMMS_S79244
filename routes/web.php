@@ -10,6 +10,7 @@ use App\Http\Controllers\SpareItemController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VesselController;
 use App\Http\Controllers\WorkOrderController;
+use App\Http\Controllers\WorkOrderSpareController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
@@ -69,6 +70,7 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::post('/work-orders/{workOrder}/submit', [WorkOrderController::class, 'submit'])->name('work-orders.submit');
     Route::post('/work-orders/{workOrder}/return', [WorkOrderController::class, 'returnToTechnician'])->name('work-orders.return');
     Route::post('/work-orders/{workOrder}/close', [WorkOrderController::class, 'close'])->name('work-orders.close');
+    Route::post('/work-orders/{workOrder}/spares', [WorkOrderSpareController::class, 'store'])->name('work-orders.spares.store');
 
     Route::get('/spares', [SpareItemController::class, 'index'])->name('spares.index');
 
@@ -77,6 +79,8 @@ Route::middleware(['auth', 'active'])->group(function (): void {
         Route::post('/spares', [SpareItemController::class, 'store'])->name('spares.store');
         Route::get('/spares/{spareItem}/edit', [SpareItemController::class, 'edit'])->name('spares.edit');
         Route::put('/spares/{spareItem}', [SpareItemController::class, 'update'])->name('spares.update');
+        Route::post('/spares/{spareItem}/receipt', [SpareItemController::class, 'receive'])->name('spares.receipt');
+        Route::post('/spares/{spareItem}/adjustment', [SpareItemController::class, 'adjust'])->name('spares.adjustment');
     });
 
     Route::get('/spares/{spareItem}', [SpareItemController::class, 'show'])->name('spares.show');

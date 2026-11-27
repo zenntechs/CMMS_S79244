@@ -4,12 +4,12 @@
 **Student ID:** S79244
 **Phase:** 7 — Spare parts and inventory
 **Phase 6 checkpoint:** `0c54f2df10fb52d83db90fa4d847a493a3bafaf7`
-**Status:** 7A COMPLETE — spare-parts registry and inventory visibility verified
+**Status:** 7B COMPLETE — stock movements and work-order spare parts integration verified
 
 ## Milestones
 
 - 7A — Spare-parts registry and inventory visibility (complete).
-- 7B — Stock movements and work-order integration (not started).
+- 7B — Stock movements and work-order spare parts integration (complete).
 - 7C — Transaction safety, concurrency and overall verification (not started).
 
 ## 7A scope
@@ -22,3 +22,20 @@
 Stock receipt, issue, return, adjustment and work-order integration are reserved for 7B.
 EOF
 echo done
+## 7B implementation and verification
+
+Supported movement types:
+- Receipt (Chief Engineer only).
+- Adjustment (Chief Engineer only, reason required).
+- Issue to active work orders (Chief Engineer or assigned Technician).
+
+Transaction-safe row locking, balance revalidation, movement and audit insertion, and rollback on
+failure. Decimal quantities use `bcadd`/`bcsub`.
+
+### Verification
+
+- `SpareMovementTest`: **15 passed / 60 assertions**.
+- Full regression suite: **194 passed / 807 assertions** (baseline 179 / 747 preserved).
+- Laravel Pint: `vendor/bin/pint --test --format agent` → **passed**.
+- HTTP and Playwright verification against `http://localhost:8081` passed for all roles.
+- Operational domain fingerprints unchanged for both development and deployment databases.
